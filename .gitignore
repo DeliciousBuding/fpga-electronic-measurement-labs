@@ -1,0 +1,40 @@
+# Quartus build artifacts
+**/db/
+**/incremental_db/
+**/output_files/
+**/simulation/
+**/greybox_tmp/
+**/work/
+
+# Quartus workspace & temp
+*.qws
+*.bak
+*.dpf
+*.sld
+*.done
+*.rpt
+*.summary
+*.smsg
+
+# Programming files
+*.sof
+*.pof
+*.jic
+*.svf
+
+# ModelSim / Questa
+*.wlf
+*.mpf
+*.vstf
+transcript
+vsim.wlf
+work/
+modelsim.ini
+
+# Reference materials (not project source)
+ref-bt-module/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
