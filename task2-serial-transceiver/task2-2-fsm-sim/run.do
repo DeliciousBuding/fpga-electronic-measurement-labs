@@ -2,7 +2,7 @@ vlib work
 vlog dual_layer_fsm.v
 vlog tb_dual_layer_fsm.v
 
-vsim work.tb_dual_layer_fsm
+vsim -voptargs="+acc" work.tb_dual_layer_fsm
 
 add wave -divider "Clock and Reset"
 add wave sim:/tb_dual_layer_fsm/clk

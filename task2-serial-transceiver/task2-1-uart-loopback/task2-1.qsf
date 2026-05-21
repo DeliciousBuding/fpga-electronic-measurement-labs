@@ -65,7 +65,7 @@ set_location_assignment PIN_K1 -to tx_en
 set_location_assignment PIN_D6 -to tx_dout
 set_location_assignment PIN_A7 -to tx_busy_flag_qn
 set_global_assignment -name SDC_FILE "task2-1.sdc"
-set_location_assignment PIN_D5 -to rx_din
+set_location_assignment PIN_B11 -to rx_din
 set_location_assignment PIN_T2 -to led_din
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to tx_en
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to tx_dout

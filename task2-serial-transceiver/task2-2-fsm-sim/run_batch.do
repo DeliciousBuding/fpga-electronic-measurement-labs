@@ -33,7 +33,4 @@ add wave -radix unsigned sim:/tb_dual_layer_fsm/dut/hold_cnt
 
 run 3000ns
 
-# Save waveform image
-write format wave -window .main_pane.wave.interior.cs.body.pw.wf fsm_wave.do
-
 quit -f

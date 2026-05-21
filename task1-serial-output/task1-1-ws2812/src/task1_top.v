@@ -61,8 +61,7 @@ module task1_top (
         end else begin
             if (key_up_pulse && led_brightness < 4'd15)
                 led_brightness <= led_brightness + 4'd1;
-
-            if (key_down_pulse && led_brightness > 4'd0)
+            else if (key_down_pulse && led_brightness > 4'd0)
                 led_brightness <= led_brightness - 4'd1;
 
             if (key_mode_pulse)

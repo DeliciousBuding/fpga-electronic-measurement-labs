@@ -65,4 +65,5 @@ set_location_assignment PIN_K1 -to tx_en
 set_location_assignment PIN_D6 -to tx_dout
 set_location_assignment PIN_A7 -to tx_busy_flag_qn
 set_global_assignment -name SDC_FILE "task1-4-uart-tx.sdc"
+
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

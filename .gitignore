@@ -22,17 +22,27 @@
 *.jic
 *.svf
 
+# Exported documents often contain local metadata; keep reproducible sources instead.
+*.pdf
+
 # ModelSim / Questa
 *.wlf
+*.cr.mti
+wlft*
 *.mpf
 *.vstf
 transcript
 vsim.wlf
 work/
+work_*/
+work_export/
 modelsim.ini
 
 # Reference materials (not project source)
 ref-bt-module/
+
+# Local handoff / operator notes
+HANDOFF_*.md
 
 # OS
 .DS_Store
