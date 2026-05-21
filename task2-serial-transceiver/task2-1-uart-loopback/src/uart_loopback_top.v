@@ -16,7 +16,7 @@ module uart_loopback_top (
     input  wire nrst,             // 低电平复位, PIN_L2
     input  wire tx_en,            // K1按键, 低电平有效, PIN_K1
 
-    input  wire rx_din,           // UART RX 输入, PIN_D5, 接 CH9143 TX
+    input  wire rx_din,           // UART RX 输入, PIN_B11, 接 CH9143 TX
     output wire tx_dout,          // UART TX 输出, PIN_D6, 接 CH9143 RX
 
     output wire tx_busy_flag_qn,  // 空闲为1，发送中为0, PIN_A7
@@ -58,20 +58,11 @@ module uart_loopback_top (
         .rx_ready (rx_ready)
     );
 
-    // 合法命令过滤：只处理这些字符，其他字节全部忽略
-    wire rx_cmd_valid =
-        (rx_data == 8'h30) ||  // '0'
-        (rx_data == 8'h31) ||  // '1'
-        (rx_data == 8'h32) ||  // '2'
-        (rx_data == 8'h33) ||  // '3'
-        (rx_data == 8'h41) ||  // 'A'
-        (rx_data == 8'h61);    // 'a'
-
     // =====================================================
     // UART 发送
     // =====================================================
-    reg        tx_start_req;
-    reg [7:0]  tx_data_req;
+    wire       tx_start_req;
+    wire [7:0] tx_data_req;
     wire       tx_busy;
 
     uart_tx_byte #(
@@ -87,36 +78,32 @@ module uart_loopback_top (
 
     assign tx_busy_flag_qn = ~tx_busy;
 
-    // 发送优先级：
-    // 1. 合法接收命令回显
-    // 2. K1 手动发送 'U'
-    always @(posedge clk or negedge nrst) begin
-        if (!nrst) begin
-            tx_start_req <= 1'b0;
-            tx_data_req  <= 8'h00;
-        end else begin
-            tx_start_req <= 1'b0;
+    // =====================================================
+    // 双层 FSM + 仲裁：rx_ready 优先，K1 手动发送次之
+    // =====================================================
+    wire [2:0] led_mode;
 
-            if (!tx_busy && rx_ready && rx_cmd_valid) begin
-                tx_data_req  <= rx_data;
-                tx_start_req <= 1'b1;
-            end else if (!tx_busy && tx_start_pulse) begin
-                tx_data_req  <= TX_DEFAULT_DATA;
-                tx_start_req <= 1'b1;
-            end
-        end
-    end
+    dual_layer_fsm u_dual_layer_fsm (
+        .clk      (clk),
+        .rst_n    (nrst),
+        .rx_ready (rx_ready),
+        .rx_data  (rx_data),
+        .tx_busy  (tx_busy),
+        .req      (tx_start_pulse),
+        .req_data (TX_DEFAULT_DATA),
+        .tx_start (tx_start_req),
+        .tx_data  (tx_data_req),
+        .led_mode (led_mode)
+    );
 
     // =====================================================
-    // LED 模式控制
+    // LED 闪烁节拍
     // =====================================================
-    reg [2:0]  led_mode;
     reg [25:0] blink_cnt;
     reg        blink_on;
 
     always @(posedge clk or negedge nrst) begin
         if (!nrst) begin
-            led_mode  <= 3'd0;
             blink_cnt <= 26'd0;
             blink_on  <= 1'b0;
         end else begin
@@ -126,18 +113,6 @@ module uart_loopback_top (
                 blink_on  <= ~blink_on;
             end else begin
                 blink_cnt <= blink_cnt + 26'd1;
-            end
-
-            if (rx_ready && rx_cmd_valid) begin
-                case (rx_data)
-                    8'h30: led_mode <= 3'd0;  // '0' 全灭
-                    8'h31: led_mode <= 3'd1;  // '1' LED1红闪
-                    8'h32: led_mode <= 3'd2;  // '2' LED2绿闪
-                    8'h33: led_mode <= 3'd3;  // '3' LED3蓝闪
-                    8'h41: led_mode <= 3'd4;  // 'A' 全白闪
-                    8'h61: led_mode <= 3'd4;  // 'a' 全白闪
-                    default: led_mode <= led_mode;
-                endcase
             end
         end
     end
@@ -546,4 +521,190 @@ module ws2812_8led (
         end
     end
 
+endmodule
+
+
+// =============================================================
+//  dual_layer_fsm — 双层状态机 + 收发仲裁
+//  功能：
+//    1. 接收合法命令后，底层 FSM 更新 led_mode；
+//    2. 等待 UART TX 空闲后回显命令；
+//    3. K1 外部发送请求作为低优先级 req，发送 0x55；
+//    4. rx_ready 优先于 req；忙碌期间用 1 字节 pending 缓冲避免接收完成字节丢失。
+// =============================================================
+module dual_layer_fsm (
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire       rx_ready,
+    input  wire [7:0] rx_data,
+    input  wire       tx_busy,
+    input  wire       req,
+    input  wire [7:0] req_data,
+    output reg        tx_start,
+    output reg [7:0]  tx_data,
+    output reg [2:0]  led_mode
+);
+    localparam [2:0] TOP_IDLE      = 3'd0;
+    localparam [2:0] TOP_LATCH_RX  = 3'd1;
+    localparam [2:0] TOP_START_SUB = 3'd2;
+    localparam [2:0] TOP_WAIT_SUB  = 3'd3;
+    localparam [2:0] TOP_SEND_ACK  = 3'd4;
+    localparam [2:0] TOP_SEND_REQ  = 3'd5;
+    localparam [2:0] TOP_DONE      = 3'd6;
+
+    localparam [1:0] SUB_IDLE  = 2'd0;
+    localparam [1:0] SUB_APPLY = 2'd1;
+    localparam [1:0] SUB_HOLD  = 2'd2;
+    localparam [1:0] SUB_DONE  = 2'd3;
+
+    reg [2:0] top_state;
+    reg [1:0] sub_state;
+    reg [7:0] cmd_reg;
+    reg       rx_pending_valid;
+    reg [7:0] rx_pending_data;
+    reg       sub_start;
+    reg       sub_done;
+    reg [3:0] hold_cnt;
+
+    wire cmd_reg_valid =
+        (cmd_reg == 8'h30) ||  // '0'
+        (cmd_reg == 8'h31) ||  // '1'
+        (cmd_reg == 8'h32) ||  // '2'
+        (cmd_reg == 8'h33) ||  // '3'
+        (cmd_reg == 8'h41) ||  // 'A'
+        (cmd_reg == 8'h61);    // 'a'
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            top_state <= TOP_IDLE;
+            cmd_reg   <= 8'h00;
+            rx_pending_valid <= 1'b0;
+            rx_pending_data  <= 8'h00;
+            sub_start <= 1'b0;
+            tx_start  <= 1'b0;
+            tx_data   <= 8'h00;
+        end else begin
+            sub_start <= 1'b0;
+            tx_start  <= 1'b0;
+
+            if (rx_ready &&
+                top_state != TOP_IDLE &&
+                top_state != TOP_SEND_REQ &&
+                !rx_pending_valid) begin
+                rx_pending_valid <= 1'b1;
+                rx_pending_data  <= rx_data;
+            end
+
+            case (top_state)
+                TOP_IDLE: begin
+                    if (rx_pending_valid) begin
+                        cmd_reg          <= rx_pending_data;
+                        rx_pending_valid <= 1'b0;
+                        top_state        <= TOP_LATCH_RX;
+                    end else if (rx_ready) begin
+                        cmd_reg   <= rx_data;
+                        top_state <= TOP_LATCH_RX;
+                    end else if (req) begin
+                        cmd_reg   <= req_data;
+                        top_state <= TOP_SEND_REQ;
+                    end
+                end
+
+                TOP_LATCH_RX: begin
+                    if (cmd_reg_valid) begin
+                        top_state <= TOP_START_SUB;
+                    end else begin
+                        top_state <= TOP_IDLE;
+                    end
+                end
+
+                TOP_START_SUB: begin
+                    sub_start <= 1'b1;
+                    top_state <= TOP_WAIT_SUB;
+                end
+
+                TOP_WAIT_SUB: begin
+                    if (sub_done)
+                        top_state <= TOP_SEND_ACK;
+                end
+
+                TOP_SEND_ACK: begin
+                    if (!tx_busy) begin
+                        tx_data   <= cmd_reg;
+                        tx_start  <= 1'b1;
+                        top_state <= TOP_DONE;
+                    end
+                end
+
+                TOP_SEND_REQ: begin
+                    if (rx_ready) begin
+                        cmd_reg   <= rx_data;
+                        top_state <= TOP_LATCH_RX;
+                    end else if (!tx_busy) begin
+                        tx_data   <= cmd_reg;
+                        tx_start  <= 1'b1;
+                        top_state <= TOP_DONE;
+                    end
+                end
+
+                TOP_DONE: begin
+                    top_state <= TOP_IDLE;
+                end
+
+                default: begin
+                    top_state <= TOP_IDLE;
+                end
+            endcase
+        end
+    end
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            sub_state <= SUB_IDLE;
+            led_mode  <= 3'd0;
+            sub_done  <= 1'b0;
+            hold_cnt  <= 4'd0;
+        end else begin
+            sub_done <= 1'b0;
+
+            case (sub_state)
+                SUB_IDLE: begin
+                    hold_cnt <= 4'd0;
+                    if (sub_start)
+                        sub_state <= SUB_APPLY;
+                end
+
+                SUB_APPLY: begin
+                    case (cmd_reg)
+                        8'h30: led_mode <= 3'd0;
+                        8'h31: led_mode <= 3'd1;
+                        8'h32: led_mode <= 3'd2;
+                        8'h33: led_mode <= 3'd3;
+                        8'h41: led_mode <= 3'd4;
+                        8'h61: led_mode <= 3'd4;
+                        default: led_mode <= led_mode;
+                    endcase
+                    sub_state <= SUB_HOLD;
+                end
+
+                SUB_HOLD: begin
+                    if (hold_cnt >= 4'd5) begin
+                        hold_cnt  <= 4'd0;
+                        sub_state <= SUB_DONE;
+                    end else begin
+                        hold_cnt <= hold_cnt + 4'd1;
+                    end
+                end
+
+                SUB_DONE: begin
+                    sub_done  <= 1'b1;
+                    sub_state <= SUB_IDLE;
+                end
+
+                default: begin
+                    sub_state <= SUB_IDLE;
+                end
+            endcase
+        end
+    end
 endmodule
