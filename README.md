@@ -1,108 +1,111 @@
-# FPGA Lab Projects for Electronic Measurement
+# 电子测量 FPGA 实验项目
 
-This repository contains Quartus / Verilog lab projects for the Electronic Measurement course. The projects target an Altera Cyclone IV E board and cover WS2812 output, UART serial communication, finite-state-machine control, PLL/FIFO IP usage, and SignalTap-oriented logic analysis.
+这是《电子测量》课程相关的 Quartus / Verilog 实验项目仓库。工程面向 Altera Cyclone IV E FPGA 开发板，内容覆盖 WS2812 彩灯控制、UART 串口通信、有限状态机控制、PLL/FIFO IP 使用，以及面向 SignalTap 的逻辑分析实验。
 
-The repository is organized as source-first coursework material. Quartus databases, programming files, ModelSim work libraries, and local vendor reference packages are intentionally ignored.
+仓库按“源码优先、可复现优先”的方式整理。Quartus 编译数据库、下载文件、ModelSim 工作库、本地厂商参考资料和个人交接记录均不纳入公开仓库。
 
-## Project Layout
+## 目录结构
 
 ```text
 .
 ├── task1-serial-output/
-│   ├── task1-1-ws2812/          # WS2812流水彩灯
-│   ├── task1-4-uart-tx/         # UART TX, 115200 8N1, 0x55
-│   └── scripts/                 # Evidence figure helpers
+│   ├── task1-1-ws2812/          # WS2812 流水彩灯
+│   ├── task1-4-uart-tx/         # UART TX，115200 8N1，发送 0x55
+│   └── scripts/                 # 证据图生成脚本
 ├── task2-serial-transceiver/
-│   ├── task2-1-uart-loopback/   # Bluetooth UART RX/TX loopback and arbitration
-│   └── task2-2-fsm-sim/         # Dual-layer FSM ModelSim simulation
+│   ├── task2-1-uart-loopback/   # 蓝牙 UART 收发回环与仲裁
+│   └── task2-2-fsm-sim/         # 双层 FSM 的 ModelSim 仿真
 ├── task3-softcore-logic-analysis/
-│   └── src/                     # Counter, PLL, async FIFO, SDFIFO_CTL integration
-├── debug-rx-edge/               # RX pin bring-up/debug project
-├── debug-rx-scan/               # RX pin scan project
-└── HANDOFF_*.md                 # Time-stamped lab handoff snapshots
+│   ├── src/                     # 计数器、PLL、异步 FIFO、SDFIFO_CTL 集成
+│   ├── sim/                     # Task3 自检 testbench
+│   └── tools/                   # Task3 预检和 SignalTap 辅助脚本
+├── debug-rx-edge/               # RX 引脚边沿检测调试工程
+├── debug-rx-scan/               # RX 引脚扫描调试工程
+└── docs/                        # 验证记录
 ```
 
-## Current Status
+## 当前状态
 
-| Task | Scope | Simulation | Quartus compile | Board |
+| 任务 | 内容 | 仿真 | Quartus 编译 | 上板 |
 | --- | --- | --- | --- | --- |
-| Task1-1 | WS2812流水彩灯 | N/A | Passed | Passed |
-| Task1-4 | UART TX, 115200/8N1/0x55 | Passed | Passed | Passed |
-| Task2-1 | Bluetooth loopback, UART RX, arbitration | Passed | Passed | Passed |
-| Task2-2 | Dual-layer FSM | Passed | N/A | N/A |
-| Task3-1 | LPM counter and SignalTap | N/A | Passed | SignalTap capture pending |
-| Task3-2 | PLL and reset synchronization | Passed | Passed | Passed |
-| Task3-3 | Async FIFO | Passed | Passed | Not required |
-| Task3-4 | SDFIFO_CTL controller | Passed | Passed | Not required |
+| Task1-1 | WS2812 流水彩灯 | N/A | 通过 | 通过 |
+| Task1-4 | UART TX，115200/8N1/0x55 | 通过 | 通过 | 通过 |
+| Task2-1 | 蓝牙回环、UART RX、优先级仲裁 | 通过 | 通过 | 通过 |
+| Task2-2 | 双层 FSM | 通过 | N/A | N/A |
+| Task3-1 | LPM counter 与 SignalTap | N/A | 通过 | 待补 SignalTap 捕获图 |
+| Task3-2 | PLL 与复位同步释放 | 通过 | 通过 | 通过 |
+| Task3-3 | 异步 FIFO | 通过 | 通过 | 不要求 |
+| Task3-4 | SDFIFO_CTL 数据流控制器 | 通过 | 通过 | 不要求 |
 
-The only known missing course artifact is the Task3-1 SignalTap board capture screenshot. The checked-in Task3 project now compiles with SignalTap enabled.
+目前唯一缺少的课程材料是 Task3-1 的 SignalTap 实机波形截图。仓库中的 Task3 工程已能在启用 SignalTap 的情况下完成 Quartus 编译。
 
-## Toolchain
+## 工具链
 
-Verified local toolchain:
+已验证的本地工具链：
 
 - Quartus Prime Lite / Standard 25.1
 - ModelSim
-- Target FPGA: Cyclone IV E, `EP4CE15F17C8`
-- JTAG: USB-Blaster
-- UART: 115200 baud, 8 data bits, no parity, 1 stop bit
+- 目标 FPGA：Cyclone IV E，`EP4CE15F17C8`
+- JTAG：USB-Blaster
+- UART：115200 baud，8 data bits，no parity，1 stop bit
 
-Quartus 9.0 may match older course screenshots, but the checked-in projects are maintained against Quartus 25.1.
+Quartus 9.0 可能更接近旧版课程截图，但本仓库工程按 Quartus 25.1 维护。
 
-## Quick Verification
+## 快速验证
 
-Task2 full preflight:
+Task2 完整预检：
 
 ```powershell
 cd task2-serial-transceiver\task2-1-uart-loopback
 powershell -ExecutionPolicy Bypass -File .\tools\preflight-task2.ps1 -Compile
 ```
 
-Expected marker:
+期望标记：
 
 ```text
 PRE_FLIGHT_OK
 ```
 
-Task3 simulation and compile preflight:
+Task3 仿真与编译预检：
 
 ```powershell
 cd task3-softcore-logic-analysis
 powershell -ExecutionPolicy Bypass -File .\tools\preflight-task3.ps1 -Compile
 ```
 
-Expected marker:
+期望标记：
 
 ```text
 TASK3_PRE_FLIGHT_OK
 ```
 
-## Hardware Notes
+## 硬件连接说明
 
-For the Task2 Bluetooth UART setup, the confirmed mapping is:
+Task2 蓝牙 UART 实验中，已确认的关键引脚映射如下：
 
-| FPGA signal | FPGA pin | Direction |
+| FPGA 信号 | FPGA 引脚 | 方向 |
 | --- | --- | --- |
-| `rx_din` | `PIN_B11` | Bluetooth module to FPGA |
-| `tx_dout` | `PIN_D6` | FPGA to Bluetooth module |
-| `tx_busy_flag_qn` | `PIN_A7` | Debug output |
-| `clk` | `PIN_E1` | 50 MHz board clock |
-| `nrst` | `PIN_L2` | Active-low reset |
-| `tx_en` | `PIN_K1` | Active-low manual TX key |
+| `rx_din` | `PIN_B11` | 蓝牙模块到 FPGA |
+| `tx_dout` | `PIN_D6` | FPGA 到蓝牙模块 |
+| `tx_busy_flag_qn` | `PIN_A7` | 调试输出 |
+| `clk` | `PIN_E1` | 50 MHz 板载时钟 |
+| `nrst` | `PIN_L2` | 低电平复位 |
+| `tx_en` | `PIN_K1` | 低电平手动发送按键 |
 
-Do not change Task2 RX back to `PIN_D5`; that was an earlier wiring assumption and is wrong for the confirmed PMOD placement.
+不要把 Task2 的 RX 改回 `PIN_D5`。`PIN_D5` 是早期接线误判，不适用于已确认的 PMOD 插法。
 
-## Repository Policy
+## 仓库规则
 
-Tracked:
+纳入版本控制：
 
-- Verilog source and testbenches
-- Quartus project/settings files needed to rebuild
-- ModelSim `.do` scripts and small helper scripts
-- Small evidence figures and handoff notes
+- Verilog 源码和 testbench
+- 重建工程所需的 Quartus 项目/设置文件
+- ModelSim `.do` 脚本和小型辅助脚本
+- 小型证据图片和验证记录
 
-Ignored:
+不纳入版本控制：
 
-- Quartus `db/`, `incremental_db/`, `output_files/`, generated reports, and bitstreams
-- ModelSim `work/`, `work_*`, `.wlf`, `.mpf`, `.cr.mti`, and transient `wlft*` files
-- Vendor reference packages under `ref-bt-module/`
+- Quartus `db/`、`incremental_db/`、`output_files/`、生成报告和 bitstream
+- ModelSim `work/`、`work_*`、`.wlf`、`.mpf`、`.cr.mti`、临时 `wlft*` 文件
+- 本地厂商参考资料、驱动包、PDF 导出件和个人交接记录
+
