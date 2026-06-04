@@ -42,7 +42,7 @@ class RgbControllerApp extends ConsumerWidget {
             useMaterial3: true,
             fontFamily: themeState.fontFamilyName,
             pageTransitionsTheme: const PageTransitionsTheme(builders: {TargetPlatform.android: CupertinoPageTransitionsBuilder(), TargetPlatform.iOS: CupertinoPageTransitionsBuilder()}),
-            cardTheme: CardThemeData(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), color: lightScheme.surfaceContainerLow, margin: EdgeInsets.zero),
+            cardTheme: CardThemeData(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), color: lightScheme.surfaceContainerLow, margin: EdgeInsets.zero),
             navigationBarTheme: NavigationBarThemeData(indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), indicatorColor: lightScheme.secondaryContainer, labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected),
           ),
           darkTheme: ThemeData(
@@ -50,7 +50,7 @@ class RgbControllerApp extends ConsumerWidget {
             useMaterial3: true,
             fontFamily: themeState.fontFamilyName,
             pageTransitionsTheme: const PageTransitionsTheme(builders: {TargetPlatform.android: CupertinoPageTransitionsBuilder(), TargetPlatform.iOS: CupertinoPageTransitionsBuilder()}),
-            cardTheme: CardThemeData(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), color: darkScheme.surfaceContainerLow, margin: EdgeInsets.zero),
+            cardTheme: CardThemeData(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), color: darkScheme.surfaceContainerLow, margin: EdgeInsets.zero),
             navigationBarTheme: NavigationBarThemeData(indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), indicatorColor: darkScheme.secondaryContainer, labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected),
           ),
           builder: (context, child) {
