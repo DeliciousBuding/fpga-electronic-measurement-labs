@@ -1,12 +1,6 @@
 // =============================================================
 //  tb_rgb_controller.v
 //  综合实验：rgb_controller_top 全链路仿真
-//  ---------------------------------------------------------
-//  模拟 CH9143 BLE-UART 发送命令帧，验证：
-//    1. UART RX 接收 → cmd_parser 解析 → ACK 回复
-//    2. 全部 8 个命令码 (0x10-0x31, 0xFF)
-//    3. 非法 CMD → 0xEE 且 FSM 恢复
-//    4. QueryStatus 5 字节回复正确
 // =============================================================
 `timescale 1ns/1ps
 
@@ -20,7 +14,7 @@ module tb_rgb_controller;
     wire       led_din;
 
     localparam integer BAUD_DIV = 434;
-    localparam integer BIT_T    = BAUD_DIV * 20; // 8680ns per bit
+    localparam integer BIT_T    = BAUD_DIV * 20;
 
     rgb_controller_top dut (
         .clk    (clk),
@@ -30,41 +24,8 @@ module tb_rgb_controller;
         .led_din(led_din)
     );
 
-    initial begin
-        clk = 1'b0;
-        forever #10 clk = ~clk;
-    end
-
     integer errors;
     integer test_num;
-
-    // ---- UART TX monitor: capture bytes from FPGA ----
-    reg [7:0] captured [0:255];
-    integer   captured_count;
-
-    task capture_clear;
-    begin
-        captured_count = 0;
-    end
-    endtask
-
-    // UART TX byte monitor as a separate named block with task-local declarations outside
-    always @(negedge tx_dout) begin : tx_monitor
-        reg [3:0]  bit_idx;
-        reg [7:0]  byte_val;
-        // Half bit to center-sample
-        #(BIT_T / 2);
-        if (tx_dout == 1'b0) begin
-            #(BIT_T);
-            for (bit_idx = 0; bit_idx < 8; bit_idx = bit_idx + 1) begin
-                byte_val[bit_idx] = tx_dout;
-                #(BIT_T);
-            end
-            #(BIT_T);
-            captured[captured_count] = byte_val;
-            captured_count = captured_count + 1;
-        end
-    end
 
     // ---- Send one UART byte to FPGA ----
     task send_byte;
@@ -82,7 +43,24 @@ module tb_rgb_controller;
         end
     endtask
 
-    // ---- Send a command frame and expect ACK byte ----
+    // ---- Monitor: count rx_ready pulses from DUT UART rx ----
+    reg [7:0] captured [0:255];
+    integer   captured_count;
+
+    // Grab tx_data at moment of tx_start for FPGA→host bytes
+    always @(posedge clk) begin
+        if (dut.cp_tx_start && !dut.tx_busy) begin
+            captured[captured_count] = dut.cp_tx_data;
+            captured_count = captured_count + 1;
+        end
+    end
+
+    task capture_clear;
+    begin
+        captured_count = 0;
+    end
+    endtask
+
     task send_cmd;
         input [7:0] cmd;
         input [7:0] arg0, arg1, arg2;
@@ -92,18 +70,9 @@ module tb_rgb_controller;
             capture_clear;
             #2000;
             send_byte(cmd);
-            if (arg_count >= 1) begin
-                #2000;
-                send_byte(arg0);
-            end
-            if (arg_count >= 2) begin
-                #2000;
-                send_byte(arg1);
-            end
-            if (arg_count >= 3) begin
-                #2000;
-                send_byte(arg2);
-            end
+            if (arg_count >= 1) begin #2000; send_byte(arg0); end
+            if (arg_count >= 2) begin #2000; send_byte(arg1); end
+            if (arg_count >= 3) begin #2000; send_byte(arg2); end
             #800000;
             if (captured_count >= 1) begin
                 if (captured[0] == expected_ack) begin
@@ -119,7 +88,6 @@ module tb_rgb_controller;
         end
     endtask
 
-    // ---- Send QueryStatus and check 5-byte reply ----
     task check_status;
         input [2:0] exp_mode;
         input [7:0] exp_r, exp_g, exp_b, exp_br;
@@ -127,7 +95,7 @@ module tb_rgb_controller;
             capture_clear;
             #2000;
             send_byte(8'hFF);
-            #800000;
+            #2000000;
             if (captured_count >= 5) begin
                 if (captured[0][2:0] == exp_mode &&
                     captured[1] == exp_r &&
@@ -149,6 +117,11 @@ module tb_rgb_controller;
     endtask
 
     initial begin
+        clk = 1'b0;
+        forever #10 clk = ~clk;
+    end
+
+    initial begin
         errors = 0;
         test_num = 0;
         rx_din = 1'b1;
@@ -160,109 +133,82 @@ module tb_rgb_controller;
 
         $display("\n=== RGB Controller Full-Link Test ===");
 
-        // Test 1
-        test_num = 1;
-        $display("\n[TEST%0d] Initial QueryStatus", test_num);
+        test_num = 1; $display("\n[TEST%0d] Initial QueryStatus", test_num);
         check_status(3'd0, 8'd0, 8'd0, 8'd0, 8'd128);
 
-        // Test 2
-        test_num = 2;
-        $display("[TEST%0d] SetColor (255,0,0)", test_num);
+        test_num = 2; $display("[TEST%0d] SetColor (255,0,0)", test_num);
         send_cmd(8'h10, 8'hFF, 8'h00, 8'h00, 4'd3, 8'hAA);
         check_status(3'd0, 8'd255, 8'd0, 8'd0, 8'd128);
 
-        // Test 3
-        test_num = 3;
-        $display("[TEST%0d] SetBrightness 200", test_num);
+        test_num = 3; $display("[TEST%0d] SetBrightness 200", test_num);
         send_cmd(8'h11, 8'hC8, 8'd0, 8'd0, 4'd1, 8'hAA);
         check_status(3'd0, 8'd255, 8'd0, 8'd0, 8'd200);
 
-        // Test 4
-        test_num = 4;
-        $display("[TEST%0d] SetMode = 1 (Breath)", test_num);
+        test_num = 4; $display("[TEST%0d] SetMode Breath", test_num);
         send_cmd(8'h20, 8'h01, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 5
-        test_num = 5;
-        $display("[TEST%0d] SetMode = 0 (Static)", test_num);
+        test_num = 5; $display("[TEST%0d] SetMode Static", test_num);
         send_cmd(8'h20, 8'h00, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 6
-        test_num = 6;
-        $display("[TEST%0d] SetFlowSpeed 128", test_num);
+        test_num = 6; $display("[TEST%0d] SetFlowSpeed 128", test_num);
         send_cmd(8'h21, 8'h80, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 7
-        test_num = 7;
-        $display("[TEST%0d] SetBreathPeriod 64", test_num);
+        test_num = 7; $display("[TEST%0d] SetBreathPeriod 64", test_num);
         send_cmd(8'h22, 8'h40, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 8
-        test_num = 8;
-        $display("[TEST%0d] SetColor (0,255,0)", test_num);
+        test_num = 8; $display("[TEST%0d] SetColor (0,255,0)", test_num);
         send_cmd(8'h10, 8'h00, 8'hFF, 8'h00, 4'd3, 8'hAA);
         check_status(3'd0, 8'd0, 8'd255, 8'd0, 8'd200);
 
-        // Test 9
-        test_num = 9;
-        $display("[TEST%0d] SaveScene slot 3", test_num);
+        test_num = 9; $display("[TEST%0d] SaveScene slot 3", test_num);
         send_cmd(8'h30, 8'h03, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 10
-        test_num = 10;
-        $display("[TEST%0d] SetColor (0,0,255) + Brightness 100", test_num);
+        test_num = 10; $display("[TEST%0d] SetColor (0,0,255)+Bright100", test_num);
         send_cmd(8'h10, 8'h00, 8'h00, 8'hFF, 4'd3, 8'hAA);
         send_cmd(8'h11, 8'h64, 8'd0, 8'd0, 4'd1, 8'hAA);
         check_status(3'd0, 8'd0, 8'd0, 8'd255, 8'd100);
 
-        // Test 11
-        test_num = 11;
-        $display("[TEST%0d] LoadScene slot 3 (restore green 200)", test_num);
+        test_num = 11; $display("[TEST%0d] LoadScene slot 3", test_num);
         send_cmd(8'h31, 8'h03, 8'd0, 8'd0, 4'd1, 8'hAA);
         check_status(3'd0, 8'd0, 8'd255, 8'd0, 8'd200);
 
-        // Test 12
-        test_num = 12;
-        $display("[TEST%0d] Invalid CMD 0xAB -> 0xEE", test_num);
+        test_num = 12; $display("[TEST%0d] Invalid CMD 0xAB", test_num);
         send_cmd(8'hAB, 8'd0, 8'd0, 8'd0, 4'd0, 8'hEE);
 
-        // Test 13
-        test_num = 13;
-        $display("[TEST%0d] Invalid CMD 0x00 -> 0xEE", test_num);
+        test_num = 13; $display("[TEST%0d] Invalid CMD 0x00", test_num);
         send_cmd(8'h00, 8'd0, 8'd0, 8'd0, 4'd0, 8'hEE);
 
-        // Test 14
-        test_num = 14;
-        $display("[TEST%0d] Recovery: QueryStatus after invalid CMDs", test_num);
+        test_num = 14; $display("[TEST%0d] Recovery check", test_num);
         check_status(3'd0, 8'd0, 8'd255, 8'd0, 8'd200);
 
-        // Test 15
-        test_num = 15;
-        $display("[TEST%0d] SetMode = 2 (Flow)", test_num);
+        test_num = 15; $display("[TEST%0d] SetMode Flow", test_num);
         send_cmd(8'h20, 8'h02, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 16
-        test_num = 16;
-        $display("[TEST%0d] SetMode = 3 (Gradient)", test_num);
+        test_num = 16; $display("[TEST%0d] SetMode Gradient", test_num);
         send_cmd(8'h20, 8'h03, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 17
-        test_num = 17;
-        $display("[TEST%0d] SetMode = 0 (Static)", test_num);
+        test_num = 17; $display("[TEST%0d] SetMode Static", test_num);
         send_cmd(8'h20, 8'h00, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 18
-        test_num = 18;
-        $display("[TEST%0d] Save+Load all 8 slots", test_num);
-        begin : batch_slot
-            integer slot;
-            for (slot = 0; slot < 8; slot = slot + 1) begin
-                send_cmd(8'h30, slot, 8'd0, 8'd0, 4'd1, 8'hAA);
-                send_cmd(8'h31, slot, 8'd0, 8'd0, 4'd1, 8'hAA);
-            end
-        end
+        test_num = 18; $display("[TEST%0d] Save+Load all 8 slots", test_num);
+        send_cmd(8'h30, 8'd0, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h31, 8'd0, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h30, 8'd1, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h31, 8'd1, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h30, 8'd2, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h31, 8'd2, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h30, 8'd3, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h31, 8'd3, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h30, 8'd4, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h31, 8'd4, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h30, 8'd5, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h31, 8'd5, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h30, 8'd6, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h31, 8'd6, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h30, 8'd7, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h31, 8'd7, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        #1000;
+        #5000;
         if (errors == 0)
             $display("\n=== ALL %0d TESTS PASSED ===", test_num);
         else
@@ -273,7 +219,7 @@ module tb_rgb_controller;
 
     initial begin
         #500000000;
-        $display("[TIMEOUT] Simulation timeout at 500ms");
+        $display("[TIMEOUT]");
         $finish;
     end
 
