@@ -14,6 +14,12 @@ module rgb_controller_top (
     localparam [2:0] MODE_MUSIC    = 3'd4;
 
     // =====================================================
+    // Registers (declared BEFORE any use)
+    // =====================================================
+    reg [7:0] cur_r, cur_g, cur_b, cur_brightness, cur_flow_speed, cur_breath_period;
+    reg [2:0] cur_mode;
+
+    // =====================================================
     // UART RX
     // =====================================================
     wire [7:0] rx_data;
@@ -74,11 +80,32 @@ module rgb_controller_top (
     );
 
     // =====================================================
-    // Internal registers
+    // scene_store
     // =====================================================
-    reg [7:0] cur_r, cur_g, cur_b, cur_brightness, cur_flow_speed, cur_breath_period;
-    reg [2:0] cur_mode;
+    wire [7:0] scene_load_r, scene_load_g, scene_load_b, scene_load_br;
+    wire       scene_load_done;
 
+    scene_store u_scene (
+        .clk            (clk),
+        .rst_n          (nrst),
+        .save           (scene_save_valid),
+        .save_slot      (cp_scene_save_slot),
+        .save_r         (cur_r),
+        .save_g         (cur_g),
+        .save_b         (cur_b),
+        .save_brightness(cur_brightness),
+        .load           (scene_load_valid),
+        .load_slot      (cp_scene_load_slot),
+        .load_r         (scene_load_r),
+        .load_g         (scene_load_g),
+        .load_b         (scene_load_b),
+        .load_brightness(scene_load_br),
+        .load_valid     (scene_load_done)
+    );
+
+    // =====================================================
+    // Register update
+    // =====================================================
     always @(posedge clk or negedge nrst) begin
         if (!nrst) begin
             cur_r            <= 8'd0;
@@ -111,30 +138,6 @@ module rgb_controller_top (
             end
         end
     end
-
-    // =====================================================
-    // scene_store
-    // =====================================================
-    wire [7:0] scene_load_r, scene_load_g, scene_load_b, scene_load_br;
-    wire       scene_load_done;
-
-    scene_store u_scene (
-        .clk            (clk),
-        .rst_n          (nrst),
-        .save           (scene_save_valid),
-        .save_slot      (cp_scene_save_slot),
-        .save_r         (cur_r),
-        .save_g         (cur_g),
-        .save_b         (cur_b),
-        .save_brightness(cur_brightness),
-        .load           (scene_load_valid),
-        .load_slot      (cp_scene_load_slot),
-        .load_r         (scene_load_r),
-        .load_g         (scene_load_g),
-        .load_b         (scene_load_b),
-        .load_brightness(scene_load_br),
-        .load_valid     (scene_load_done)
-    );
 
     // =====================================================
     // breath engine
@@ -225,7 +228,7 @@ module rgb_controller_top (
     wire [7:0] final_b = bmult_b[15:8] + {7'd0, bmult_b[7]} + {7'd0, bmult_b[6]};
 
     // =====================================================
-    // Per-LED GRB assembly (flow mask gates each LED)
+    // Per-LED GRB assembly
     // =====================================================
     wire [7:0] led_en = (cur_mode == MODE_FLOW) ? flow_mask : 8'hFF;
 
@@ -280,7 +283,7 @@ module rgb_controller_top (
     end
 
     // =====================================================
-    // UART TX (direct from cmd_parser, no arbitration needed)
+    // UART TX
     // =====================================================
     uart_tx_byte #(
         .BAUD_DIV(BAUD_DIV)
