@@ -10,6 +10,7 @@ class BLEService {
   BluetoothDevice? _device;
   BluetoothCharacteristic? _txChar;
   StreamSubscription<List<int>>? _rxSub;
+  StreamSubscription? _connSub;
 
   final _isConnected = ValueNotifier<bool>(false);
   final _rxStream = StreamController<List<int>>.broadcast();
@@ -24,20 +25,13 @@ class BLEService {
 
   Future<void> init() async {
     if (!await FlutterBluePlus.isSupported) throw Exception('BLE 不支持');
-    await FlutterBluePlus.adapterState
-        .where((s) => s == BluetoothAdapterState.on)
-        .first
-        .timeout(const Duration(seconds: 5));
+    await FlutterBluePlus.adapterState.where((s) => s == BluetoothAdapterState.on).first.timeout(const Duration(seconds: 5));
   }
 
   Future<List<ScanResult>> scan({int seconds = 5}) async {
     final results = <ScanResult>[];
     await FlutterBluePlus.startScan(timeout: Duration(seconds: seconds));
-    await for (final r in FlutterBluePlus.scanResults) {
-      results
-        ..clear()
-        ..addAll(r);
-    }
+    await for (final r in FlutterBluePlus.scanResults) { results..clear()..addAll(r); }
     results.sort((a, b) => b.rssi.compareTo(a.rssi));
     return results;
   }
@@ -50,77 +44,53 @@ class BLEService {
 
       BluetoothService? target;
       for (final s in services) {
-        final u = s.uuid.toString().toLowerCase();
-        if (u.contains('fff0')) {
-          target = s;
-          break;
-        }
+        if (s.uuid.toString().toLowerCase().contains('fff0')) { target = s; break; }
       }
-      if (target == null) {
-        _log.w('No FFF0 service');
-        await device.disconnect();
-        return false;
-      }
+      if (target == null) { _log.w('No FFF0 service'); await device.disconnect(); return false; }
 
       for (final c in target.characteristics) {
         final u = c.uuid.toString().toLowerCase();
-        if (u.contains('fff2') && c.properties.writeWithoutResponse) {
-          _txChar = c;
-        }
+        if (u.contains('fff2') && c.properties.writeWithoutResponse) _txChar = c;
         if (u.contains('fff1') && c.properties.notify) {
           await c.setNotifyValue(true);
-          _rxSub = c.lastValueStream.listen((d) {
-            _rxStream.add(Uint8List.fromList(d));
-          });
+          _rxSub = c.lastValueStream.listen((d) => _rxStream.add(Uint8List.fromList(d)));
         }
       }
 
-      if (_txChar == null) {
-        await device.disconnect();
-        return false;
-      }
+      if (_txChar == null) { await device.disconnect(); return false; }
 
       _isConnected.value = true;
-      device.connectionState.listen((s) {
+      _connSub = device.connectionState.listen((s) {
         if (s == BluetoothConnectionState.disconnected) {
-          _isConnected.value = false;
-          _device = null;
-          _txChar = null;
-          _rxSub?.cancel();
+          _isConnected.value = false; _device = null; _txChar = null;
+          _rxSub?.cancel(); _connSub?.cancel();
         }
       });
+
+      _send(Uint8List.fromList([0xFF]));
       return true;
-    } catch (e) {
-      _log.e('Connect: $e');
-      return false;
-    }
+    } catch (e) { _log.e('Connect: $e'); return false; }
   }
 
   Future<void> disconnect() async => await _device?.disconnect();
 
-  Future<void> send(Uint8List data) async {
+  Future<void> _send(Uint8List data) async {
     if (_txChar == null) return;
-    try {
-      await _txChar!.write(data, withoutResponse: true);
-    } catch (_) {}
+    try { await _txChar!.write(data, withoutResponse: true); } catch (_) {}
   }
 
-  Future<void> setColor(int r, int g, int b) =>
-      send(Uint8List.fromList([0x10, r, g, b]));
-  Future<void> setBrightness(int v) =>
-      send(Uint8List.fromList([0x11, v.clamp(0, 255)]));
-  Future<void> setMode(int m) => send(Uint8List.fromList([0x20, m]));
-  Future<void> setFlowSpeed(int v) =>
-      send(Uint8List.fromList([0x21, v.clamp(0, 255)]));
-  Future<void> setBreathPeriod(int v) =>
-      send(Uint8List.fromList([0x22, v.clamp(0, 255)]));
-  Future<void> saveScene(int s) => send(Uint8List.fromList([0x30, s]));
-  Future<void> loadScene(int s) => send(Uint8List.fromList([0x31, s]));
+  Future<void> setColor(int r, int g, int b) => _send(Uint8List.fromList([0x10, r, g, b]));
+  Future<void> setBrightness(int v) => _send(Uint8List.fromList([0x11, v.clamp(0, 255)]));
+  Future<void> setMode(int m) => _send(Uint8List.fromList([0x20, m]));
+  Future<void> setFlowSpeed(int v) => _send(Uint8List.fromList([0x21, v.clamp(0, 255)]));
+  Future<void> setBreathPeriod(int v) => _send(Uint8List.fromList([0x22, v.clamp(0, 255)]));
+  Future<void> saveScene(int s) => _send(Uint8List.fromList([0x30, s]));
+  Future<void> loadScene(int s) => _send(Uint8List.fromList([0x31, s]));
+  Future<void> queryStatus() => _send(Uint8List.fromList([0xFF]));
 
   void dispose() {
-    _rxSub?.cancel();
-    _rxStream.close();
-    _isConnected.dispose();
+    _rxSub?.cancel(); _connSub?.cancel();
+    _rxStream.close(); _isConnected.dispose();
   }
 }
 
