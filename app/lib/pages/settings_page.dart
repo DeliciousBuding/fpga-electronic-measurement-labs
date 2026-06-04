@@ -47,7 +47,7 @@ class SettingsPage extends ConsumerWidget {
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('RGB 彩灯蓝牙控制器', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: cs.onSurface)),
                   const SizedBox(height: 2),
-                  Text('v0.1 · 湖南大学 · 计算机学院实验中心', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+                  Text('v0.1 · 湖南大学 · 工训中心', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
                 ])),
               ]),
               const Divider(height: 28),
