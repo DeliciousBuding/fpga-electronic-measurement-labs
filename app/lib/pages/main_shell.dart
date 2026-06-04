@@ -69,27 +69,25 @@ class _BleBanner extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     return ValueListenableBuilder(
       valueListenable: ble.isConnected,
-      builder: (_, connected, __) => AnimatedSlide(
+      builder: (_, connected, __) => AnimatedSize(
         duration: const Duration(milliseconds: 300),
-        offset: connected ? const Offset(0, -2) : Offset.zero,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 300),
-          opacity: connected ? 0 : 1,
-          child: Card(
-            margin: const EdgeInsets.symmetric(horizontal: 0),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            color: cs.errorContainer,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Row(children: [
-                Icon(Icons.bluetooth_disabled_rounded, size: 20, color: cs.onErrorContainer),
-                const SizedBox(width: 10),
-                Expanded(child: Text('未连接蓝牙设备', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onErrorContainer))),
-                TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())), style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12), visualDensity: VisualDensity.compact), child: Text('连接', style: TextStyle(fontWeight: FontWeight.w700, color: cs.onErrorContainer))),
-              ]),
-            ),
-          ),
-        ),
+        curve: Curves.easeInOut,
+        child: connected
+            ? const SizedBox.shrink()
+            : Card(
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                color: cs.errorContainer,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Row(children: [
+                    Icon(Icons.bluetooth_disabled_rounded, size: 20, color: cs.onErrorContainer),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text('未连接蓝牙设备', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onErrorContainer))),
+                    TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())), style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12), visualDensity: VisualDensity.compact), child: Text('连接', style: TextStyle(fontWeight: FontWeight.w700, color: cs.onErrorContainer))),
+                  ]),
+                ),
+              ),
       ),
     );
   }
