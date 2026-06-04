@@ -30,17 +30,17 @@ module cmd_parser (
     localparam [2:0] ST_IDLE       = 3'd0;
     localparam [2:0] ST_GET_ARGS   = 3'd1;
     localparam [2:0] ST_EXECUTE    = 3'd2;
-    localparam [2:0] ST_SEND_BYTE  = 3'd3;
-    localparam [2:0] ST_WAIT_TX    = 3'd4;
-    localparam [2:0] ST_NEXT_BYTE  = 3'd5;
-    localparam [2:0] ST_DONE       = 3'd6;
+    localparam [2:0] ST_SEND_NEXT  = 3'd3;
+    localparam [2:0] ST_WAIT_BUSY  = 3'd4;
+    localparam [2:0] ST_DONE       = 3'd5;
 
     reg [2:0]  state;
     reg [7:0]  cmd;
     reg [2:0]  arg_cnt;
     reg [7:0]  arg_buf [0:2];
+    reg [2:0]  send_len;
     reg [2:0]  send_idx;
-    reg [7:0]  send_data [0:4];
+    reg [7:0]  send_data [0:5];
     reg        is_error;
     reg        is_query;
 
@@ -68,9 +68,12 @@ module cmd_parser (
             state     <= ST_IDLE;
             cmd       <= 8'd0;
             arg_cnt   <= 3'd0;
+            send_len  <= 3'd1;
             send_idx  <= 3'd0;
             is_error  <= 1'b0;
             is_query  <= 1'b0;
+            tx_start  <= 1'b0;
+            tx_data   <= 8'd0;
             arg_buf[0] <= 8'd0;
             arg_buf[1] <= 8'd0;
             arg_buf[2] <= 8'd0;
@@ -79,6 +82,8 @@ module cmd_parser (
                 ST_IDLE: begin
                     arg_cnt  <= 3'd0;
                     send_idx <= 3'd0;
+                    is_error <= 1'b0;
+                    is_query <= 1'b0;
                     if (rx_ready) begin
                         cmd      <= rx_data;
                         is_error <= (get_frame_len(rx_data) == 4'd0);
@@ -104,38 +109,38 @@ module cmd_parser (
 
                 ST_EXECUTE: begin
                     if (is_query) begin
+                        send_len <= 3'd5;
                         send_data[0] <= {5'd0, status_mode};
                         send_data[1] <= status_r;
                         send_data[2] <= status_g;
                         send_data[3] <= status_b;
                         send_data[4] <= status_brightness;
                     end else begin
+                        send_len <= 3'd1;
                         send_data[0] <= is_error ? 8'hEE : 8'hAA;
                     end
                     send_idx <= 3'd0;
-                    state    <= ST_SEND_BYTE;
+                    state    <= ST_SEND_NEXT;
                 end
 
-                ST_SEND_BYTE: begin
+                ST_SEND_NEXT: begin
+                    tx_start <= 1'b0;
                     if (!tx_busy) begin
                         tx_data  <= send_data[send_idx];
                         tx_start <= 1'b1;
-                        state    <= ST_WAIT_TX;
+                        state    <= ST_WAIT_BUSY;
                     end
                 end
 
-                ST_WAIT_TX: begin
+                ST_WAIT_BUSY: begin
                     if (tx_busy) begin
                         tx_start <= 1'b0;
-                        state    <= (is_query && send_idx != 3'd4) ? ST_NEXT_BYTE : ST_DONE;
-                    end
-                end
-
-                ST_NEXT_BYTE: begin
-                    tx_start <= 1'b0;
-                    if (!tx_busy) begin
-                        send_idx <= send_idx + 3'd1;
-                        state    <= ST_SEND_BYTE;
+                        if (send_idx == send_len - 3'd1) begin
+                            state <= ST_DONE;
+                        end else begin
+                            send_idx <= send_idx + 3'd1;
+                            state    <= ST_SEND_NEXT;
+                        end
                     end
                 end
 
@@ -188,37 +193,30 @@ module cmd_parser (
                         color_b       <= arg_buf[2];
                         color_valid   <= 1'b1;
                     end
-
                     8'h11: begin
                         brightness       <= arg_buf[0];
                         brightness_valid <= 1'b1;
                     end
-
                     8'h20: begin
                         mode       <= arg_buf[0][2:0];
                         mode_valid <= 1'b1;
                     end
-
                     8'h21: begin
                         flow_speed       <= arg_buf[0];
                         flow_speed_valid <= 1'b1;
                     end
-
                     8'h22: begin
                         breath_period       <= arg_buf[0];
                         breath_period_valid <= 1'b1;
                     end
-
                     8'h30: begin
                         scene_save_slot  <= arg_buf[0][2:0];
                         scene_save_valid <= 1'b1;
                     end
-
                     8'h31: begin
                         scene_load_slot  <= arg_buf[0][2:0];
                         scene_load_valid <= 1'b1;
                     end
-
                     default: begin
                     end
                 endcase

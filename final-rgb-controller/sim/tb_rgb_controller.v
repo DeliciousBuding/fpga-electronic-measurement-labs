@@ -48,13 +48,11 @@ module tb_rgb_controller;
     end
     endtask
 
-    always begin
-        reg [15:0] wait_cnt;
+    // UART TX byte monitor as a separate named block with task-local declarations outside
+    always @(negedge tx_dout) begin : tx_monitor
         reg [3:0]  bit_idx;
         reg [7:0]  byte_val;
-        // Wait for start bit (tx_dout goes low)
-        @(negedge tx_dout);
-        // Half bit delay to center-sample
+        // Half bit to center-sample
         #(BIT_T / 2);
         if (tx_dout == 1'b0) begin
             #(BIT_T);
@@ -62,7 +60,6 @@ module tb_rgb_controller;
                 byte_val[bit_idx] = tx_dout;
                 #(BIT_T);
             end
-            // Stop bit
             #(BIT_T);
             captured[captured_count] = byte_val;
             captured_count = captured_count + 1;
@@ -107,11 +104,10 @@ module tb_rgb_controller;
                 #2000;
                 send_byte(arg2);
             end
-            // Wait for ACK
-            #800000; // ~0.8ms: generous for BLE UART latency
+            #800000;
             if (captured_count >= 1) begin
                 if (captured[0] == expected_ack) begin
-                    $display("[PASS] CMD 0x%02h → ACK 0x%02h", cmd, captured[0]);
+                    $display("[PASS] CMD 0x%02h -> ACK 0x%02h", cmd, captured[0]);
                 end else begin
                     $display("[ERROR] CMD 0x%02h expected 0x%02h, got 0x%02h", cmd, expected_ack, captured[0]);
                     errors = errors + 1;
@@ -164,101 +160,101 @@ module tb_rgb_controller;
 
         $display("\n=== RGB Controller Full-Link Test ===");
 
-        // Test 1: Initial status check
+        // Test 1
         test_num = 1;
         $display("\n[TEST%0d] Initial QueryStatus", test_num);
         check_status(3'd0, 8'd0, 8'd0, 8'd0, 8'd128);
 
-        // Test 2: SetColor RED
+        // Test 2
         test_num = 2;
         $display("[TEST%0d] SetColor (255,0,0)", test_num);
         send_cmd(8'h10, 8'hFF, 8'h00, 8'h00, 4'd3, 8'hAA);
         check_status(3'd0, 8'd255, 8'd0, 8'd0, 8'd128);
 
-        // Test 3: SetBrightness 200
+        // Test 3
         test_num = 3;
         $display("[TEST%0d] SetBrightness 200", test_num);
         send_cmd(8'h11, 8'hC8, 8'd0, 8'd0, 4'd1, 8'hAA);
         check_status(3'd0, 8'd255, 8'd0, 8'd0, 8'd200);
 
-        // Test 4: SetMode Breath
+        // Test 4
         test_num = 4;
         $display("[TEST%0d] SetMode = 1 (Breath)", test_num);
         send_cmd(8'h20, 8'h01, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 5: SetMode Static (back)
+        // Test 5
         test_num = 5;
         $display("[TEST%0d] SetMode = 0 (Static)", test_num);
         send_cmd(8'h20, 8'h00, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 6: SetFlowSpeed
+        // Test 6
         test_num = 6;
         $display("[TEST%0d] SetFlowSpeed 128", test_num);
         send_cmd(8'h21, 8'h80, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 7: SetBreathPeriod
+        // Test 7
         test_num = 7;
         $display("[TEST%0d] SetBreathPeriod 64", test_num);
         send_cmd(8'h22, 8'h40, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 8: SetColor GREEN
+        // Test 8
         test_num = 8;
         $display("[TEST%0d] SetColor (0,255,0)", test_num);
         send_cmd(8'h10, 8'h00, 8'hFF, 8'h00, 4'd3, 8'hAA);
         check_status(3'd0, 8'd0, 8'd255, 8'd0, 8'd200);
 
-        // Test 9: SaveScene slot 3
+        // Test 9
         test_num = 9;
         $display("[TEST%0d] SaveScene slot 3", test_num);
         send_cmd(8'h30, 8'h03, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 10: Change color to blue, set brightness to 100
+        // Test 10
         test_num = 10;
         $display("[TEST%0d] SetColor (0,0,255) + Brightness 100", test_num);
         send_cmd(8'h10, 8'h00, 8'h00, 8'hFF, 4'd3, 8'hAA);
         send_cmd(8'h11, 8'h64, 8'd0, 8'd0, 4'd1, 8'hAA);
         check_status(3'd0, 8'd0, 8'd0, 8'd255, 8'd100);
 
-        // Test 11: LoadScene slot 3 (should restore green 200)
+        // Test 11
         test_num = 11;
-        $display("[TEST%0d] LoadScene slot 3", test_num);
+        $display("[TEST%0d] LoadScene slot 3 (restore green 200)", test_num);
         send_cmd(8'h31, 8'h03, 8'd0, 8'd0, 4'd1, 8'hAA);
         check_status(3'd0, 8'd0, 8'd255, 8'd0, 8'd200);
 
-        // Test 12: Invalid CMD → 0xEE
+        // Test 12
         test_num = 12;
-        $display("[TEST%0d] Invalid CMD 0xAB → 0xEE", test_num);
+        $display("[TEST%0d] Invalid CMD 0xAB -> 0xEE", test_num);
         send_cmd(8'hAB, 8'd0, 8'd0, 8'd0, 4'd0, 8'hEE);
 
-        // Test 13: Invalid CMD 0x00 → 0xEE
+        // Test 13
         test_num = 13;
-        $display("[TEST%0d] Invalid CMD 0x00 → 0xEE", test_num);
+        $display("[TEST%0d] Invalid CMD 0x00 -> 0xEE", test_num);
         send_cmd(8'h00, 8'd0, 8'd0, 8'd0, 4'd0, 8'hEE);
 
-        // Test 14: Recovery after invalid: QueryStatus still works
+        // Test 14
         test_num = 14;
         $display("[TEST%0d] Recovery: QueryStatus after invalid CMDs", test_num);
         check_status(3'd0, 8'd0, 8'd255, 8'd0, 8'd200);
 
-        // Test 15: SetMode Flow
+        // Test 15
         test_num = 15;
         $display("[TEST%0d] SetMode = 2 (Flow)", test_num);
         send_cmd(8'h20, 8'h02, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 16: SetMode Gradient
+        // Test 16
         test_num = 16;
         $display("[TEST%0d] SetMode = 3 (Gradient)", test_num);
         send_cmd(8'h20, 8'h03, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 17: SetMode Static
+        // Test 17
         test_num = 17;
         $display("[TEST%0d] SetMode = 0 (Static)", test_num);
         send_cmd(8'h20, 8'h00, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        // Test 18: SaveScene & LoadScene all 8 slots
+        // Test 18
         test_num = 18;
         $display("[TEST%0d] Save+Load all 8 slots", test_num);
-        begin
+        begin : batch_slot
             integer slot;
             for (slot = 0; slot < 8; slot = slot + 1) begin
                 send_cmd(8'h30, slot, 8'd0, 8'd0, 4'd1, 8'hAA);
@@ -266,7 +262,6 @@ module tb_rgb_controller;
             end
         end
 
-        // Summary
         #1000;
         if (errors == 0)
             $display("\n=== ALL %0d TESTS PASSED ===", test_num);
@@ -276,7 +271,6 @@ module tb_rgb_controller;
         $finish;
     end
 
-    // Timeout protection
     initial begin
         #500000000;
         $display("[TIMEOUT] Simulation timeout at 500ms");
