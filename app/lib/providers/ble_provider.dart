@@ -16,12 +16,18 @@ class BLEService {
 
   ValueListenable<bool> get isConnected => _isConnected;
   Stream<List<int>> get rxStream => _rxStream.stream;
+  String get deviceName =>
+      _device?.platformName.isNotEmpty == true
+          ? _device!.platformName
+          : (_device?.remoteId.str ?? '');
+  bool get hasDevice => _device != null;
 
   Future<void> init() async {
-    if (!await FlutterBluePlus.isSupported) throw Exception('不支持BLE');
+    if (!await FlutterBluePlus.isSupported) throw Exception('BLE 不支持');
     await FlutterBluePlus.adapterState
         .where((s) => s == BluetoothAdapterState.on)
-        .first;
+        .first
+        .timeout(const Duration(seconds: 5));
   }
 
   Future<List<ScanResult>> scan({int seconds = 5}) async {
