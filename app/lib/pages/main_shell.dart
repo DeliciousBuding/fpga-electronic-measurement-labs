@@ -39,10 +39,10 @@ class _MainShellState extends ConsumerState<MainShell> {
               onDestinationSelected: (i) { ref.read(barVisibilityProvider.notifier).show(); setState(() => _index = i); },
               indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               destinations: const [
-                NavigationDestination(icon: Icon(Icons.palette_outlined, size: 22), selectedIcon: Icon(Icons.palette_rounded, size: 22), label: '颜色'),
-                NavigationDestination(icon: Icon(Icons.auto_awesome_outlined, size: 22), selectedIcon: Icon(Icons.auto_awesome_rounded, size: 22), label: '灯效'),
-                NavigationDestination(icon: Icon(Icons.bookmark_outlined, size: 22), selectedIcon: Icon(Icons.bookmark_rounded, size: 22), label: '情景'),
-                NavigationDestination(icon: Icon(Icons.settings_outlined, size: 22), selectedIcon: Icon(Icons.settings_rounded, size: 22), label: '设置'),
+                NavigationDestination(icon: Icon(Icons.light_rounded, size: 22), selectedIcon: Icon(Icons.light_rounded, size: 22), label: 'LED'),
+                NavigationDestination(icon: Icon(Icons.auto_awesome_rounded, size: 22), selectedIcon: Icon(Icons.auto_awesome_rounded, size: 22), label: '灯效'),
+                NavigationDestination(icon: Icon(Icons.bookmark_rounded, size: 22), selectedIcon: Icon(Icons.bookmark_rounded, size: 22), label: '情景'),
+                NavigationDestination(icon: Icon(Icons.tune_rounded, size: 22), selectedIcon: Icon(Icons.tune_rounded, size: 22), label: '设置'),
               ],
             ),
           ),
@@ -51,9 +51,9 @@ class _MainShellState extends ConsumerState<MainShell> {
     );
   }
 
-  Widget _buildTab(int i) => KeyedSubtree(key: ValueKey(i), child: switch (i) {
-    0 => const _ColorTab(), 1 => const _EffectTab(), 2 => const _SceneTab(), _ => const SettingsPage(),
-  });
+  Widget _buildTab(int i) => KeyedSubtree(key: ValueKey(i), child: _tabs[i]);
+
+  static const _tabs = [_ColorTab(), _EffectTab(), _SceneTab(), SettingsPage()];
 }
 
 class _BleBanner extends ConsumerWidget {
@@ -120,7 +120,7 @@ class _ColorTab extends ConsumerWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(title: const Text('RGB Controller'), centerTitle: true, elevation: 0, scrolledUnderElevation: 1, actions: const [_BleAction()]),
+      appBar: AppBar(title: const Text('RGB Controller'), centerTitle: true, elevation: 0, scrolledUnderElevation: 1, surfaceTintColor: Colors.transparent, actions: const [_BleAction()]),
       body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, 20), children: [
         const SizedBox(height: 4),
         const _BleBanner(),
