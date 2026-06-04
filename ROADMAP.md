@@ -81,7 +81,7 @@ CMD   Name            Args              FPGA Response
 | M6 | 多灯同步控制 (选做) | todo |
 | M7 | Quartus 编译 + 上板 | **done** |
 | M8 | SignalTap 波形捕获 | todo |
-| M9 | BLE 真机联调 + 端到端验证 | **待硬件接入** |
+| M9 | BLE 真机联调 + 端到端验证 | **待手动——手机打开蓝牙 + CH9143 上电** |
 
 ## FPGA 编译与验证总结
 
