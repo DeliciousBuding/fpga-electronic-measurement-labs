@@ -22,9 +22,7 @@ class SettingsPage extends ConsumerWidget {
         title: const Text('设置'), centerTitle: true, elevation: 0, scrolledUnderElevation: 1,
         actions: [Padding(padding: const EdgeInsets.only(right: 4), child: ValueListenableBuilder(valueListenable: ble.isConnected, builder: (_, connected, __) => IconButton(icon: connected ? Badge(isLabelVisible: true, smallSize: 8, child: Icon(Icons.bluetooth_connected_rounded, color: cs.primary)) : Icon(Icons.bluetooth_rounded, color: cs.onSurfaceVariant.withAlpha(150)), tooltip: connected ? '已连接 ${ble.deviceName}' : '未连接', onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())))))],
       ),
-      body: Container(
-        decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [cs.surface, Colors.transparent, cs.surfaceContainerHighest])),
-        child: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, 24), children: [
+      body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, 24), children: [
           _SectionHeader(icon: Icons.brush_rounded, title: '外观', cs: cs),
           const SizedBox(height: 8),
           Card(
@@ -61,7 +59,7 @@ class SettingsPage extends ConsumerWidget {
             ])),
           ),
           SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
-        ]),
+        ],
       ),
     );
   }

@@ -65,9 +65,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(title: const Text('扫描蓝牙设备'), centerTitle: true, elevation: 0),
-      body: Container(
-        decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [cs.surface, Colors.transparent, cs.surfaceContainerHighest])),
-        child: _bleOff ? _buildBleOff(context, cs) : Column(children: [
+      body: _bleOff ? _buildBleOff(context, cs) : Column(children: [
           SizedBox(height: topPad),
           SizedBox(
             height: 160,
@@ -140,7 +138,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
                     }),
           ),
           SafeArea(child: Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 16), child: SizedBox(width: double.infinity, height: 52, child: FilledButton.icon(onPressed: _scanning || _bleOff ? null : _startScan, icon: const Icon(Icons.refresh_rounded, size: 20), label: Text(_scanning ? '扫描中...' : '重新扫描'), style: FilledButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))))))),
-        ]),
+        ],
       ),
     );
   }
