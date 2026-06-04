@@ -48,3 +48,38 @@ p18  = PIN_E8      p19  = PIN_F8      p20  = PIN_A7
 p21  = PIN_A10     p22  = PIN_A11     p23  = PIN_B10
 p24  = PIN_B11
 ```
+
+## CH9143 BLE PMOD 模块
+
+- 芯片: CH9143 (WCH 沁恒)
+- BLE 4.2, UART 透传
+- Service UUID: `0000FFF0-0000-1000-8000-00805F9B34FB`
+- Write Characteristic: `0000FFF2-...` (APP → FPGA)
+- Notify Characteristic: `0000FFF1-...` (FPGA → APP)
+- UART 参数: 115200, 8N1
+- 波特率分频: 50MHz / 115200 = 434
+- 连接方式: PMOD 直插 Cy4 开发板右侧 PMOD 口
+- 参考上位机: `WeActStudio-CH9143` (in `ref-bt-module/`)
+
+## 编译环境
+
+| 工具 | 版本 | 路径 |
+|------|------|------|
+| Quartus Prime | 25.1std.0 Lite | `C:\altera_lite\25.1std\quartus\bin64` |
+| ModelSim SE | 2020.4 | `C:\Program Files\ModelSim\win64` |
+| USB-Blaster | — | JTAG 下载器 |
+| FPGA | EP4CE15F17C8 | Cyclone IV E |
+| 板载晶振 | 50 MHz | PIN_E1 |
+
+## 现有可复用参考项
+
+| 来源 | 内容 | 状态 |
+|------|------|------|
+| `demo-sof/01-示波器+灰盒HDL-ws2812.sof` | WS2812 灰盒 IP 验证 | 上板通过 |
+| `demo-sof/04-蓝牙UART-回环收发.sof` | BLE UART 回环 | 上板通过 |
+| `task1-1-ws2812/` | WS2812 QXP 灰盒 + 按键控制 | 通过 |
+| `task1-4-uart-tx/` | UART TX 发送 0x55 | 通过 |
+| `task2-1-uart-loopback/` | BLE UART 回环 + LED 控制 | 通过 |
+| `task2-2-fsm-sim/` | 双层 FSM ModelSim 仿真 | 通过 |
+| `task3-softcore-logic-analysis/` | PLL/FIFO/SignalTap | 通过 |
+| `ref-bt-module/WeActStudio-CH9143/` | CH9143 数据手册 + 上位机 | 参考 |
