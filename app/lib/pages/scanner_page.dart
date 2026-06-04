@@ -77,7 +77,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
         Expanded(child: _devices.isEmpty
             ? Center(child: AnimatedSwitcher(duration: const Duration(milliseconds: 300), child: _scanning
                 ? Column(mainAxisSize: MainAxisSize.min, children: [SizedBox(width: 32, height: 32, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary)), const SizedBox(height: 18), Text('正在扫描...', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14))])
-                : Column(mainAxisSize: MainAxisSize.min, children: [Container(width: 72, height: 72, decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: cs.surfaceContainerHighest), child: Icon(Icons.bluetooth_searching_rounded, size: 36, color: cs.onSurfaceVariant.withAlpha(100))), const SizedBox(height: 16), Text('未发现设备', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: cs.onSurfaceVariant)), const SizedBox(height: 6), Text('点击下方按钮重新扫描', style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant.withAlpha(150)))])))
+                : Column(mainAxisSize: MainAxisSize.min, children: [Container(width: 72, height: 72, decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: cs.surfaceContainerLow), child: Icon(Icons.bluetooth_searching_rounded, size: 36, color: cs.onSurfaceVariant.withAlpha(100))), const SizedBox(height: 16), Text('未发现设备', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: cs.onSurfaceVariant)), const SizedBox(height: 6), Text('点击下方按钮重新扫描', style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant.withAlpha(150)))])))
             : ListView.separated(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8), itemCount: _devices.length, separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (_, i) {
                   final d = _devices[i]; final loading = _connectingId == d.device.remoteId.str;
@@ -103,7 +103,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
     appBar: AppBar(title: const Text('扫描蓝牙设备'), centerTitle: true, elevation: 0),
     body: Column(children: [
       SizedBox(height: topPad + 40), const Spacer(),
-      Container(width: 96, height: 96, decoration: BoxDecoration(borderRadius: BorderRadius.circular(24), color: cs.surfaceContainerHighest), child: Icon(Icons.bluetooth_disabled_rounded, size: 48, color: cs.onSurfaceVariant.withAlpha(100))),
+      Container(width: 96, height: 96, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: cs.surfaceContainerLow), child: Icon(Icons.bluetooth_disabled_rounded, size: 48, color: cs.onSurfaceVariant.withAlpha(100))),
       const SizedBox(height: 20), Text('蓝牙已关闭', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)), const SizedBox(height: 6), Text('请先在系统设置中开启蓝牙', style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant.withAlpha(150))),
       const SizedBox(height: 28),
       OutlinedButton.icon(onPressed: () => FlutterBluePlus.turnOn(), icon: const Icon(Icons.bluetooth_rounded, size: 20), label: const Text('开启蓝牙'), style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12))),
