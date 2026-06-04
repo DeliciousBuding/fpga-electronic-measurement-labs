@@ -5,6 +5,7 @@
 **/simulation/
 **/greybox_tmp/
 **/work/
+**/work_*/
 
 # Quartus workspace & temp
 *.qws
@@ -16,16 +17,13 @@
 *.summary
 *.smsg
 
-# Programming files
+# Programming files (gitignored — regenerate from source)
 *.sof
 *.pof
 *.jic
 *.svf
 
-# Exported documents often contain local metadata; keep reproducible sources instead.
-*.pdf
-
-# ModelSim / Questa
+# ModelSim / Questa artifacts
 *.wlf
 *.cr.mti
 wlft*
@@ -33,25 +31,36 @@ wlft*
 *.vstf
 transcript
 vsim.wlf
-work/
-work_*/
-work_export/
 modelsim.ini
+work_export/
+
+# PDF exports (regenerate from source)
+*.pdf
 
 # Reference materials (not project source)
 ref-bt-module/
 
-# Local handoff / operator notes
-HANDOFF_*.md
+# Pre-built demo SOF files (not source)
+demo-sof/
 
-# OS
-.DS_Store
-Thumbs.db
-desktop.ini
-.dart_tool/
-.metadata
-app/android/.gradle/
-app/android/local.properties
+# Top-level Flutter artifacts (only app/ is the Flutter project)
 lib/
 pubspec.lock
 pubspec.yaml
+.dart_tool/
+.metadata
+
+# Flutter/Android build
+app/android/.gradle/
+app/android/local.properties
+app/.dart_tool/
+app/build/
+app/.flutter-plugins*
+
+# Handoff notes (ephemeral)
+HANDOFF_*.md
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
