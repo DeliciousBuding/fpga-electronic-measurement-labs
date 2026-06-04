@@ -13,6 +13,14 @@ module scene_store (
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
+            scenes[0][0] <= 8'd0; scenes[0][1] <= 8'd0; scenes[0][2] <= 8'd0; scenes[0][3] <= 8'd128;
+            scenes[1][0] <= 8'd0; scenes[1][1] <= 8'd0; scenes[1][2] <= 8'd0; scenes[1][3] <= 8'd128;
+            scenes[2][0] <= 8'd0; scenes[2][1] <= 8'd0; scenes[2][2] <= 8'd0; scenes[2][3] <= 8'd128;
+            scenes[3][0] <= 8'd0; scenes[3][1] <= 8'd0; scenes[3][2] <= 8'd0; scenes[3][3] <= 8'd128;
+            scenes[4][0] <= 8'd0; scenes[4][1] <= 8'd0; scenes[4][2] <= 8'd0; scenes[4][3] <= 8'd128;
+            scenes[5][0] <= 8'd0; scenes[5][1] <= 8'd0; scenes[5][2] <= 8'd0; scenes[5][3] <= 8'd128;
+            scenes[6][0] <= 8'd0; scenes[6][1] <= 8'd0; scenes[6][2] <= 8'd0; scenes[6][3] <= 8'd128;
+            scenes[7][0] <= 8'd0; scenes[7][1] <= 8'd0; scenes[7][2] <= 8'd0; scenes[7][3] <= 8'd128;
             load_valid <= 1'b0;
             load_r     <= 8'd0;
             load_g     <= 8'd0;
