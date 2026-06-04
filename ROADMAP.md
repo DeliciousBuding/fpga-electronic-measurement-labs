@@ -76,11 +76,12 @@ CMD   Name            Args              FPGA Response
 | M1 | FPGA RGB 控制器 (PWM/呼吸/流水/渐变) | **done** |
 | M2 | UART 命令集成 (cmd_parser + ACK + 顶层连线) | **done** |
 | M3 | ModelSim 全链路仿真 (18/18 PASS) | **done** |
-| M4 | Flutter APP 全功能 | wip (app agent) |
+| M4 | Flutter APP 全功能 | **done** |
 | M5 | FFT 音乐联动 (选做) | todo |
 | M6 | 多灯同步控制 (选做) | todo |
 | M7 | Quartus 编译 + 上板 | **done** |
 | M8 | SignalTap 波形捕获 | todo |
+| M9 | BLE 真机联调 + 端到端验证 | **待硬件接入** |
 
 ## FPGA 编译与验证总结
 
