@@ -193,10 +193,11 @@ class _LedStripState extends State<_LedStrip> with SingleTickerProviderStateMixi
       animation: _anim,
       builder: (_, __) => Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: EdgeInsets.zero,
         child: Padding(padding: const EdgeInsets.fromLTRB(16, 20, 16, 16), child: Column(children: [
           Row(children: [Icon(Icons.light_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text('LED 灯带', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface)), const Spacer(), Badge(backgroundColor: baseColor, label: Text('${widget.brightness}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11, color: Colors.white))), const SizedBox(width: 8), Text('亮度', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant))]),
           const SizedBox(height: 14),
-          Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14), decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: cs.surfaceContainerLowest), child: Column(children: [
+          Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14), decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: cs.surfaceContainerLowest, border: Border.all(color: cs.outlineVariant.withAlpha(40))), child: Column(children: [
             Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: _ledColor(i, baseColor), cs: cs))),
             const SizedBox(height: 8),
             Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: _ledColor(i + 4, baseColor), cs: cs))),
@@ -231,7 +232,7 @@ class _LedDot extends StatelessWidget {
         child: AnimatedContainer(duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: lit ? color : cs.surfaceContainerHighest,
+            color: lit ? color : cs.surfaceContainerLowest,
             boxShadow: lit ? [BoxShadow(color: color.withAlpha(80), blurRadius: 12, spreadRadius: 2)] : null,
             border: Border.all(color: lit ? Colors.white.withAlpha(40) : cs.outlineVariant.withAlpha(80), width: lit ? 1.5 : 1),
           ),
