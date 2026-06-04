@@ -48,3 +48,10 @@ HANDOFF_*.md
 .DS_Store
 Thumbs.db
 desktop.ini
+.dart_tool/
+.metadata
+app/android/.gradle/
+app/android/local.properties
+lib/
+pubspec.lock
+pubspec.yaml
