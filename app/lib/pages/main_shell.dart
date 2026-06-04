@@ -24,9 +24,9 @@ class _MainShellState extends ConsumerState<MainShell> {
 
     return Scaffold(
       body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
+        duration: const Duration(milliseconds: 250),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
         transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
         child: _buildTab(_index),
       ),
@@ -136,9 +136,9 @@ class _ColorTab extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(title: const Text('RGB Controller'), centerTitle: true, elevation: 0, scrolledUnderElevation: 1, actions: const [_BleAction()]),
-      body: Container(
-        decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [cs.surface, Colors.transparent, cs.surfaceContainerHighest])),
-        child: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, 24), children: [
+      body: ListView(
+        padding: EdgeInsets.fromLTRB(20, topPad, 20, 24),
+        children: [
           const SizedBox(height: 4),
           const _BleBanner(),
           const SizedBox(height: 12),
@@ -148,15 +148,15 @@ class _ColorTab extends ConsumerWidget {
           const SizedBox(height: 24),
           _SliderCard(label: '亮度', icon: Icons.brightness_7_rounded, value: s.brightness.toDouble(), min: 1, max: 255, color: cs.primary,
               onChanged: (v) { final iv = v.round(); ref.read(deviceProvider.notifier).setBrightness(iv); ble.setBrightness(iv); }),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           _ColorSlidersCard(r: s.r, g: s.g, b: s.b, cs: cs,
               onR: (v) { ref.read(deviceProvider.notifier).setColor(v, s.g, s.b); ble.setColor(v, s.g, s.b); },
               onG: (v) { ref.read(deviceProvider.notifier).setColor(s.r, v, s.b); ble.setColor(s.r, v, s.b); },
               onB: (v) { ref.read(deviceProvider.notifier).setColor(s.r, s.g, v); ble.setColor(s.r, s.g, v); }),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           _PresetColors(cs: cs, r: s.r, g: s.g, b: s.b, onPick: (r, g, b) { ref.read(deviceProvider.notifier).setColor(r, g, b); ble.setColor(r, g, b); }),
           SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
-        ]),
+        ],
       ),
     );
   }
@@ -365,9 +365,9 @@ class _EffectTab extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(title: const Text('灯效'), centerTitle: true, elevation: 0, scrolledUnderElevation: 1, actions: const [_BleAction()]),
-      body: Container(
-        decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [cs.surface, Colors.transparent, cs.surfaceContainerHighest])),
-        child: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, 24), children: [
+      body: ListView(
+        padding: EdgeInsets.fromLTRB(20, topPad, 20, 24),
+        children: [
           const SizedBox(height: 4),
           const _BleBanner(),
           const SizedBox(height: 12),
@@ -408,7 +408,7 @@ class _EffectTab extends ConsumerWidget {
             _SliderCard(label: '呼吸周期', icon: Icons.timelapse_rounded, value: s.breathPeriod.toDouble(), min: 1, max: 255, color: const Color(0xFF06B6D4), onChanged: (v) { final iv = v.round(); ref.read(deviceProvider.notifier).setBreathPeriod(iv); ble.setBreathPeriod(iv); }),
           ],
           SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
-        ]),
+        ],
       ),
     );
   }
@@ -429,9 +429,9 @@ class _SceneTab extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(title: const Text('情景模式'), centerTitle: true, elevation: 0, scrolledUnderElevation: 1, actions: const [_BleAction()]),
-      body: Container(
-        decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [cs.surface, Colors.transparent, cs.surfaceContainerHighest])),
-        child: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, 24), children: [
+      body: ListView(
+        padding: EdgeInsets.fromLTRB(20, topPad, 20, 24),
+        children: [
           const SizedBox(height: 4),
           const _BleBanner(),
           const SizedBox(height: 12),
@@ -475,7 +475,7 @@ class _SceneTab extends ConsumerWidget {
             },
           ),
           SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
-        ]),
+        ],
       ),
     );
   }
