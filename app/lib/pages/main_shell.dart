@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/ble_provider.dart';
@@ -143,42 +144,77 @@ class _ColorTab extends ConsumerWidget {
   }
 }
 
-class _LedStrip extends StatelessWidget {
+class _LedStrip extends StatefulWidget {
   final Color color; final int mode; final int brightness; final ColorScheme cs;
   const _LedStrip({required this.color, required this.mode, required this.brightness, required this.cs});
+  @override
+  State<_LedStrip> createState() => _LedStripState();
+}
+
+class _LedStripState extends State<_LedStrip> with SingleTickerProviderStateMixin {
+  late AnimationController _ticker;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = AnimationController(vsync: this, duration: const Duration(seconds: 3))..repeat();
+    _anim = CurvedAnimation(parent: _ticker, curve: Curves.easeInOut);
+  }
+
+  @override
+  void dispose() { _ticker.dispose(); super.dispose(); }
+
+  Color _ledColor(int index, Color base) {
+    final bf = widget.brightness / 255.0;
+    final c = Color.fromARGB(255, (base.r * bf).round().clamp(0, 255), (base.g * bf).round().clamp(0, 255), (base.b * bf).round().clamp(0, 255));
+
+    switch (widget.mode) {
+      case 1: // breath
+        final v = (_anim.value * 2 * math.pi);
+        final sin = (0.5 + 0.5 * math.sin(v)).clamp(0.0, 1.0);
+        return Color.fromARGB(255, (c.r * sin).round(), (c.g * sin).round(), (c.b * sin).round());
+      case 2: // flow
+        final shift = (_anim.value * 8 + index) % 8;
+        final dist = (shift - 4).abs();
+        final f = (1.0 - dist / 5.0).clamp(0.0, 1.0);
+        return Color.fromARGB(255, (c.r * f).round(), (c.g * f).round(), (c.b * f).round());
+      default:
+        return c;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bf = brightness / 255.0;
-    final litColor = Color.fromARGB(255, (color.r * bf).round().clamp(0, 255), (color.g * bf).round().clamp(0, 255), (color.b * bf).round().clamp(0, 255));
+    final cs = widget.cs;
+    final baseColor = widget.color;
 
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(padding: const EdgeInsets.fromLTRB(16, 20, 16, 16), child: Column(children: [
-        Row(children: [Icon(Icons.light_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text('LED 灯带', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface)), const Spacer(), Badge(backgroundColor: color, label: Text('$brightness', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11, color: Colors.white))), const SizedBox(width: 8), Text('亮度', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant))]),
-        const SizedBox(height: 14),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: cs.surfaceContainerLowest),
-          child: Column(children: [
-            Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: litColor, cs: cs))),
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (_, __) => Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(padding: const EdgeInsets.fromLTRB(16, 20, 16, 16), child: Column(children: [
+          Row(children: [Icon(Icons.light_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text('LED 灯带', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface)), const Spacer(), Badge(backgroundColor: baseColor, label: Text('${widget.brightness}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11, color: Colors.white))), const SizedBox(width: 8), Text('亮度', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant))]),
+          const SizedBox(height: 14),
+          Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14), decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: cs.surfaceContainerLowest), child: Column(children: [
+            Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: _ledColor(i, baseColor), cs: cs))),
             const SizedBox(height: 8),
-            Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: litColor, cs: cs))),
-          ]),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(height: 32, child: Row(children: [
-          _ModeBadge(active: mode == 0, label: '静态', color: cs.primary),
-          const SizedBox(width: 6),
-          _ModeBadge(active: mode == 1, label: '呼吸', color: const Color(0xFF06B6D4)),
-          const SizedBox(width: 6),
-          _ModeBadge(active: mode == 2, label: '流水', color: const Color(0xFF3B82F6)),
-          const SizedBox(width: 6),
-          _ModeBadge(active: mode == 3, label: '渐变', color: const Color(0xFF8B5CF6)),
-          const SizedBox(width: 6),
-          _ModeBadge(active: mode == 4, label: '音乐', color: const Color(0xFFEC4899)),
+            Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: _ledColor(i + 4, baseColor), cs: cs))),
+          ])),
+          const SizedBox(height: 12),
+          SizedBox(height: 32, child: Row(children: [
+            _ModeBadge(active: widget.mode == 0, label: '静态', color: cs.primary),
+            const SizedBox(width: 6),
+            _ModeBadge(active: widget.mode == 1, label: '呼吸', color: const Color(0xFF06B6D4)),
+            const SizedBox(width: 6),
+            _ModeBadge(active: widget.mode == 2, label: '流水', color: const Color(0xFF3B82F6)),
+            const SizedBox(width: 6),
+            _ModeBadge(active: widget.mode == 3, label: '渐变', color: const Color(0xFF8B5CF6)),
+            const SizedBox(width: 6),
+            _ModeBadge(active: widget.mode == 4, label: '音乐', color: const Color(0xFFEC4899)),
+          ])),
         ])),
-      ])),
+      ),
     );
   }
 }
