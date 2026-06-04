@@ -172,36 +172,26 @@ class _LedStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final leds = List.generate(8, (i) {
-      final brightnessFactor = brightness / 255.0;
-      final r = (color.r * brightnessFactor).round().clamp(0, 255);
-      final g = (color.g * brightnessFactor).round().clamp(0, 255);
-      final b = (color.b * brightnessFactor).round().clamp(0, 255);
-      return Color.fromARGB(255, r, g, b);
-    });
+    final bf = brightness / 255.0;
+    final litColor = Color.fromARGB(255,
+      (color.r * bf).round().clamp(0, 255),
+      (color.g * bf).round().clamp(0, 255),
+      (color.b * bf).round().clamp(0, 255),
+    );
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(padding: const EdgeInsets.fromLTRB(16, 20, 16, 20), child: Column(children: [
-        Row(children: [Icon(Icons.light_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text('LED 状态', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface)), const Spacer(), Badge(backgroundColor: color, label: Text('$brightness', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11, color: Colors.white))), const SizedBox(width: 8), Text('亮度', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant))]),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 52,
-          child: Row(spacing: 8, children: List.generate(8, (i) {
-            final ledColor = leds[i];
-            final glow = ledColor.computeLuminance() > 0.1;
-            return Expanded(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: ledColor,
-                  boxShadow: glow ? [BoxShadow(color: ledColor.withAlpha(80), blurRadius: 12, spreadRadius: 2)] : null,
-                  border: Border.all(color: cs.outlineVariant.withAlpha(60), width: 0.5),
-                ),
-              ),
-            );
-          })),
+      child: Padding(padding: const EdgeInsets.fromLTRB(16, 20, 16, 16), child: Column(children: [
+        Row(children: [Icon(Icons.light_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text('LED 灯带', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface)), const Spacer(), Badge(backgroundColor: color, label: Text('$brightness', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11, color: Colors.white))), const SizedBox(width: 8), Text('亮度', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant))]),
+        const SizedBox(height: 14),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: cs.surfaceContainerHighest),
+          child: Column(children: [
+            Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: litColor, cs: cs, index: i))),
+            const SizedBox(height: 8),
+            Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: litColor, cs: cs, index: i + 4))),
+          ]),
         ),
         const SizedBox(height: 12),
         SizedBox(height: 32, child: Row(children: [
@@ -216,6 +206,36 @@ class _LedStrip extends StatelessWidget {
           _ModeBadge(active: mode == 4, label: '音乐', color: const Color(0xFFEC4899)),
         ])),
       ])),
+    );
+  }
+}
+
+class _LedDot extends StatelessWidget {
+  final Color color; final ColorScheme cs; final int index;
+  const _LedDot({required this.color, required this.cs, required this.index});
+
+  @override
+  Widget build(BuildContext context) {
+    final lit = color.computeLuminance() > 0.08;
+    return Expanded(
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: lit ? color : cs.surfaceContainerHighest,
+            boxShadow: lit ? [BoxShadow(color: color.withAlpha(100), blurRadius: 14, spreadRadius: 3)] : null,
+            border: Border.all(color: lit ? Colors.white.withAlpha(40) : cs.outlineVariant.withAlpha(60), width: lit ? 1.5 : 1),
+          ),
+          child: lit ? Center(
+            child: Container(
+              width: 8, height: 8,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withAlpha(60)),
+            ),
+          ) : null,
+        ),
+      ),
     );
   }
 }
