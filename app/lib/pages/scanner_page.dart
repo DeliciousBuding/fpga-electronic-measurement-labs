@@ -16,31 +16,25 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
   String? _connectingId;
   StreamSubscription? _adapterSub;
   late AnimationController _pulse;
+  late AnimationController _ringCtrl;
 
   @override
   void initState() {
     super.initState();
-    _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat(reverse: true);
+    _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500))..repeat(reverse: true);
+    _ringCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 2000))..repeat();
     _startScan();
     _adapterSub = FlutterBluePlus.adapterState.listen((s) { if (s == BluetoothAdapterState.on && mounted) _startScan(); });
   }
 
   @override
-  void dispose() {
-    _pulse.dispose();
-    _adapterSub?.cancel();
-    super.dispose();
-  }
+  void dispose() { _pulse.dispose(); _ringCtrl.dispose(); _adapterSub?.cancel(); super.dispose(); }
 
   Future<void> _startScan() async {
     if (_scanning) return;
     setState(() => _scanning = true);
-    try {
-      final r = await ref.read(bleServiceProvider).scan(seconds: 5);
-      if (mounted) { setState(() => _devices = r); }
-    } finally {
-      if (mounted) { setState(() => _scanning = false); }
-    }
+    try { final r = await ref.read(bleServiceProvider).scan(seconds: 5); if (mounted) setState(() => _devices = r); }
+    finally { if (mounted) setState(() => _scanning = false); }
   }
 
   Future<void> _connect(ScanResult r) async {
@@ -48,11 +42,8 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
     final ok = await ref.read(bleServiceProvider).connect(r.device);
     if (!mounted) return;
     setState(() => _connectingId = null);
-    if (ok) {
-      Navigator.pop(context, true);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('连接失败，请重试')));
-    }
+    if (ok) { Navigator.pop(context, true); }
+    else { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('连接失败，请重试'), behavior: SnackBarBehavior.floating)); }
   }
 
   String _name(ScanResult r) => r.advertisementData.advName.isNotEmpty ? r.advertisementData.advName : r.device.remoteId.str;
@@ -60,47 +51,94 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(title: const Text('扫描蓝牙设备'), centerTitle: true, elevation: 0),
       body: Container(
-        decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [cs.primaryContainer.withAlpha(60), cs.tertiaryContainer.withAlpha(40), cs.surface])),
+        decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [cs.surface, Colors.transparent, cs.surfaceContainerHighest])),
         child: Column(children: [
-          const SizedBox(height: 80),
-          AnimatedBuilder(
-            animation: _pulse,
-            builder: (_, child) => Transform.scale(scale: 1.0 + _pulse.value * 0.08, child: child),
-            child: Icon(Icons.bluetooth_searching_rounded, size: 64, color: cs.primary),
+          SizedBox(height: topPad),
+          SizedBox(
+            height: 160,
+            child: Stack(alignment: Alignment.center, children: [
+              AnimatedBuilder(
+                animation: _ringCtrl,
+                builder: (_, child) => Transform.scale(scale: 1.0 + (_ringCtrl.value * 0.3), child: Opacity(opacity: 1.0 - _ringCtrl.value, child: child)),
+                child: Container(width: 110, height: 110, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: cs.primary.withAlpha(40), width: 2))),
+              ),
+              AnimatedBuilder(
+                animation: _ringCtrl,
+                builder: (_, child) => Transform.scale(scale: 1.0 + (_ringCtrl.value * 0.2 + 0.1), child: Opacity(opacity: 0.6 - _ringCtrl.value * 0.3, child: child)),
+                child: Container(width: 90, height: 90, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: cs.primary.withAlpha(60), width: 2))),
+              ),
+              AnimatedBuilder(
+                animation: _pulse,
+                builder: (_, child) => Transform.scale(scale: 1.0 + _pulse.value * 0.06, child: child),
+                child: Container(
+                  width: 72, height: 72,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: cs.primaryContainer, boxShadow: [BoxShadow(color: cs.primary.withAlpha(40), blurRadius: 24, spreadRadius: 4)]),
+                  child: Icon(Icons.bluetooth_searching_rounded, size: 36, color: cs.primary),
+                ),
+              ),
+            ]),
           ),
-          const SizedBox(height: 16),
-          Text('扫描蓝牙设备', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text('扫描蓝牙设备', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           Text('请确保 CH9143 BLE 模块已上电', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
-          const SizedBox(height: 28),
+          const SizedBox(height: 20),
           Expanded(
             child: _devices.isEmpty
-                ? Center(child: _scanning ? const CircularProgressIndicator() : Text('未发现设备', style: TextStyle(color: cs.onSurfaceVariant)))
+                ? Center(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: _scanning
+                          ? Column(key: const ValueKey('scanning'), mainAxisSize: MainAxisSize.min, children: [SizedBox(width: 32, height: 32, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary)), const SizedBox(height: 18), Text('正在扫描...', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14))])
+                          : Column(key: const ValueKey('empty'), mainAxisSize: MainAxisSize.min, children: [
+                              Container(width: 80, height: 80, decoration: BoxDecoration(borderRadius: BorderRadius.circular(24), color: cs.surfaceContainerHighest), child: Icon(Icons.bluetooth_searching_rounded, size: 40, color: cs.onSurfaceVariant.withAlpha(100))),
+                              const SizedBox(height: 18),
+                              Text('未发现设备', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: cs.onSurfaceVariant)),
+                              const SizedBox(height: 6),
+                              Text('点击下方按钮重新扫描', style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant.withAlpha(150))),
+                            ]),
+                    ))
                 : ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    itemCount: _devices.length, separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    itemCount: _devices.length, separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (_, i) {
-                      final d = _devices[i];
-                      final loading = _connectingId == d.device.remoteId.str;
+                      final d = _devices[i]; final loading = _connectingId == d.device.remoteId.str;
                       return Card(
-                        child: ListTile(
-                          leading: CircleAvatar(backgroundColor: cs.primaryContainer, child: loading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(Icons.bluetooth, color: cs.onPrimaryContainer)),
-                          title: Text(_name(d), style: const TextStyle(fontWeight: FontWeight.w600)),
-                          subtitle: Text('RSSI: ${d.rssi} dBm  |  ${d.device.remoteId.str}', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
-                          trailing: Icon(Icons.chevron_right_rounded, color: cs.onSurfaceVariant),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(20),
                           onTap: loading ? null : () => _connect(d),
+                          child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
+                            Container(width: 48, height: 48, decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: cs.primaryContainer), child: loading ? Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary))) : Icon(Icons.devices_rounded, color: cs.primary, size: 24)),
+                            const SizedBox(width: 14),
+                            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text(_name(d), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                              const SizedBox(height: 2),
+                              Text(d.device.remoteId.str, style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+                            ])),
+                            Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: _rssi(d.rssi).withAlpha(20)), child: Text('${d.rssi} dBm', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _rssi(d.rssi)))),
+                            const SizedBox(width: 4),
+                            Icon(Icons.chevron_right_rounded, color: cs.onSurfaceVariant.withAlpha(120)),
+                          ])),
                         ),
                       );
                     }),
           ),
-          SafeArea(child: Padding(padding: const EdgeInsets.all(16), child: SizedBox(width: double.infinity, height: 56, child: FilledButton.icon(onPressed: _scanning ? null : _startScan, icon: const Icon(Icons.refresh_rounded), label: Text(_scanning ? '扫描中...' : '重新扫描'), style: FilledButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))))))),
+          SafeArea(child: Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 16), child: SizedBox(width: double.infinity, height: 52, child: FilledButton.icon(onPressed: _scanning ? null : _startScan, icon: const Icon(Icons.refresh_rounded, size: 20), label: Text(_scanning ? '扫描中...' : '重新扫描'), style: FilledButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))))))),
         ]),
       ),
     );
+  }
+
+  Color _rssi(int dbm) {
+    if (dbm > -50) return const Color(0xFF22C55E);
+    if (dbm > -70) return const Color(0xFFEAB308);
+    return const Color(0xFFEF4444);
   }
 }

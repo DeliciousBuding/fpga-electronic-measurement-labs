@@ -6,6 +6,7 @@ class DeviceState {
   final int mode;
   final int flowSpeed;
   final int breathPeriod;
+  final List<bool> sceneSaved;
 
   const DeviceState({
     this.r = 255,
@@ -15,12 +16,14 @@ class DeviceState {
     this.mode = 0,
     this.flowSpeed = 128,
     this.breathPeriod = 128,
+    this.sceneSaved = const [false, false, false, false, false, false, false, false],
   });
 
   DeviceState copyWith({
     int? r, int? g, int? b,
     int? brightness, int? mode,
     int? flowSpeed, int? breathPeriod,
+    List<bool>? sceneSaved,
   }) =>
       DeviceState(
         r: r ?? this.r, g: g ?? this.g, b: b ?? this.b,
@@ -28,6 +31,7 @@ class DeviceState {
         mode: mode ?? this.mode,
         flowSpeed: flowSpeed ?? this.flowSpeed,
         breathPeriod: breathPeriod ?? this.breathPeriod,
+        sceneSaved: sceneSaved ?? this.sceneSaved,
       );
 }
 
@@ -40,6 +44,11 @@ class DeviceNotifier extends Notifier<DeviceState> {
   void setMode(int m) => state = state.copyWith(mode: m);
   void setFlowSpeed(int v) => state = state.copyWith(flowSpeed: v);
   void setBreathPeriod(int v) => state = state.copyWith(breathPeriod: v);
+  void markSceneSaved(int i) {
+    final l = List<bool>.from(state.sceneSaved);
+    l[i] = true;
+    state = state.copyWith(sceneSaved: l);
+  }
 }
 
 final deviceProvider = NotifierProvider<DeviceNotifier, DeviceState>(
