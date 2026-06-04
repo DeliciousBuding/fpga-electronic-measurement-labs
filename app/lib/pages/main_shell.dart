@@ -254,40 +254,6 @@ class _ModeBadge extends StatelessWidget {
   }
 }
 
-class _ColorPreview extends StatelessWidget {
-  final Color color;
-  final ColorScheme cs;
-  const _ColorPreview({required this.color, required this.cs});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 500), curve: Curves.easeOutCubic,
-        width: 160, height: 160,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-          boxShadow: [
-            BoxShadow(color: color.withAlpha(100), blurRadius: 64, spreadRadius: 16, offset: const Offset(0, 8)),
-            BoxShadow(color: color.withAlpha(60), blurRadius: 24, spreadRadius: 0, offset: const Offset(0, 4)),
-          ],
-          border: Border.all(color: Colors.white.withAlpha(50), width: 2),
-        ),
-        child: Center(
-          child: Container(
-            width: 80, height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withAlpha(25),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _RgbDisplay extends StatelessWidget {
   final int r, g, b;
   final ColorScheme cs;
