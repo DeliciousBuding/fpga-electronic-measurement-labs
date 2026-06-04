@@ -14,6 +14,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
   List<ScanResult> _devices = [];
   bool _scanning = false;
   String? _connectingId;
+  bool _bleOff = false;
   StreamSubscription? _adapterSub;
   late AnimationController _pulse;
   late AnimationController _ringCtrl;
@@ -23,15 +24,23 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
     super.initState();
     _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500))..repeat(reverse: true);
     _ringCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 2000))..repeat();
-    _startScan();
-    _adapterSub = FlutterBluePlus.adapterState.listen((s) { if (s == BluetoothAdapterState.on && mounted) _startScan(); });
+    _checkAdapter();
+    _adapterSub = FlutterBluePlus.adapterState.listen((s) {
+      if (!mounted) return;
+      if (s == BluetoothAdapterState.on) {
+        setState(() => _bleOff = false);
+        _startScan();
+      } else {
+        setState(() => _bleOff = true);
+      }
+    });
   }
 
   @override
   void dispose() { _pulse.dispose(); _ringCtrl.dispose(); _adapterSub?.cancel(); super.dispose(); }
 
   Future<void> _startScan() async {
-    if (_scanning) return;
+    if (_scanning || _bleOff) return;
     setState(() => _scanning = true);
     try { final r = await ref.read(bleServiceProvider).scan(seconds: 5); if (mounted) setState(() => _devices = r); }
     finally { if (mounted) setState(() => _scanning = false); }
@@ -58,7 +67,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
       appBar: AppBar(title: const Text('扫描蓝牙设备'), centerTitle: true, elevation: 0),
       body: Container(
         decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [cs.surface, Colors.transparent, cs.surfaceContainerHighest])),
-        child: Column(children: [
+        child: _bleOff ? _buildBleOff(context, cs) : Column(children: [
           SizedBox(height: topPad),
           SizedBox(
             height: 160,
@@ -130,10 +139,41 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
                       );
                     }),
           ),
-          SafeArea(child: Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 16), child: SizedBox(width: double.infinity, height: 52, child: FilledButton.icon(onPressed: _scanning ? null : _startScan, icon: const Icon(Icons.refresh_rounded, size: 20), label: Text(_scanning ? '扫描中...' : '重新扫描'), style: FilledButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))))))),
+          SafeArea(child: Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 16), child: SizedBox(width: double.infinity, height: 52, child: FilledButton.icon(onPressed: _scanning || _bleOff ? null : _startScan, icon: const Icon(Icons.refresh_rounded, size: 20), label: Text(_scanning ? '扫描中...' : '重新扫描'), style: FilledButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))))))),
         ]),
       ),
     );
+  }
+
+  Widget _buildBleOff(BuildContext context, ColorScheme cs) {
+    return Column(children: [
+      SizedBox(height: MediaQuery.of(context).padding.top + kToolbarHeight + 8),
+      const Spacer(),
+      Container(
+        width: 100, height: 100,
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(28), color: cs.surfaceContainerHighest),
+        child: Icon(Icons.bluetooth_disabled_rounded, size: 48, color: cs.onSurfaceVariant.withAlpha(100)),
+      ),
+      const SizedBox(height: 20),
+      Text('蓝牙已关闭', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
+      const SizedBox(height: 6),
+      Text('请先在系统设置中开启蓝牙', style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant.withAlpha(150))),
+      const SizedBox(height: 28),
+      OutlinedButton.icon(
+        onPressed: () => FlutterBluePlus.turnOn(),
+        icon: const Icon(Icons.bluetooth_rounded, size: 20),
+        label: const Text('开启蓝牙'),
+        style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12)),
+      ),
+      const Spacer(flex: 2),
+    ]);
+  }
+
+  void _checkAdapter() async {
+    try {
+      final s = await FlutterBluePlus.adapterState.first;
+      if (mounted) setState(() => _bleOff = s != BluetoothAdapterState.on);
+    } catch (_) {}
   }
 
   Color _rssi(int dbm) {
