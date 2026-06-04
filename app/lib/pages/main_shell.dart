@@ -31,13 +31,12 @@ class _MainShellState extends ConsumerState<MainShell> {
         child: _buildTab(_index),
       ),
       bottomNavigationBar: ClipRect(
-        child: Align(
-          alignment: Alignment.topCenter, heightFactor: visibility,
+        child: Align(alignment: Alignment.topCenter, heightFactor: visibility,
           child: Opacity(opacity: visibility,
             child: NavigationBar(
-              selectedIndex: _index,
-              animationDuration: const Duration(milliseconds: 400),
+              selectedIndex: _index, animationDuration: const Duration(milliseconds: 400),
               onDestinationSelected: (i) { ref.read(barVisibilityProvider.notifier).show(); setState(() => _index = i); },
+              indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               destinations: const [
                 NavigationDestination(icon: Icon(Icons.palette_outlined, size: 22), selectedIcon: Icon(Icons.palette_rounded, size: 22), label: '颜色'),
                 NavigationDestination(icon: Icon(Icons.auto_awesome_outlined, size: 22), selectedIcon: Icon(Icons.auto_awesome_rounded, size: 22), label: '灯效'),
@@ -51,14 +50,9 @@ class _MainShellState extends ConsumerState<MainShell> {
     );
   }
 
-  Widget _buildTab(int i) {
-    return KeyedSubtree(key: ValueKey(i), child: switch (i) {
-      0 => const _ColorTab(),
-      1 => const _EffectTab(),
-      2 => const _SceneTab(),
-      _ => const SettingsPage(),
-    });
-  }
+  Widget _buildTab(int i) => KeyedSubtree(key: ValueKey(i), child: switch (i) {
+    0 => const _ColorTab(), 1 => const _EffectTab(), 2 => const _SceneTab(), _ => const SettingsPage(),
+  });
 }
 
 class _BleBanner extends ConsumerWidget {
@@ -69,25 +63,18 @@ class _BleBanner extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     return ValueListenableBuilder(
       valueListenable: ble.isConnected,
-      builder: (_, connected, __) => AnimatedSize(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        child: connected
-            ? const SizedBox.shrink()
-            : Card(
-                margin: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                color: cs.errorContainer,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  child: Row(children: [
-                    Icon(Icons.bluetooth_disabled_rounded, size: 20, color: cs.onErrorContainer),
-                    const SizedBox(width: 10),
-                    Expanded(child: Text('未连接蓝牙设备', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onErrorContainer))),
-                    TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())), style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12), visualDensity: VisualDensity.compact), child: Text('连接', style: TextStyle(fontWeight: FontWeight.w700, color: cs.onErrorContainer))),
-                  ]),
-                ),
-              ),
+      builder: (_, connected, __) => AnimatedSize(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut,
+        child: connected ? const SizedBox.shrink() : Card(
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          color: cs.errorContainer,
+          child: Padding(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), child: Row(children: [
+            Icon(Icons.bluetooth_disabled_rounded, size: 20, color: cs.onErrorContainer),
+            const SizedBox(width: 10),
+            Expanded(child: Text('未连接蓝牙设备', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onErrorContainer))),
+            TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())), style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12), visualDensity: VisualDensity.compact), child: Text('连接', style: TextStyle(fontWeight: FontWeight.w700, color: cs.onErrorContainer))),
+          ])),
+        ),
       ),
     );
   }
@@ -99,17 +86,14 @@ class _BleAction extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ble = ref.read(bleServiceProvider);
     final cs = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(right: 4),
-      child: ValueListenableBuilder(
-        valueListenable: ble.isConnected,
-        builder: (_, connected, __) => IconButton(
-          icon: connected
-              ? Badge(isLabelVisible: true, smallSize: 8, child: Icon(Icons.bluetooth_connected_rounded, color: cs.primary))
-              : Icon(Icons.bluetooth_rounded, color: cs.onSurfaceVariant.withAlpha(150)),
-          tooltip: connected ? '已连接 ${ble.deviceName}' : '未连接 - 点击扫描',
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())),
-        ),
+    return ValueListenableBuilder(
+      valueListenable: ble.isConnected,
+      builder: (_, connected, __) => IconButton(
+        icon: connected
+            ? Badge(isLabelVisible: true, smallSize: 8, child: Icon(Icons.bluetooth_connected_rounded, color: cs.primary))
+            : Icon(Icons.bluetooth_rounded, color: cs.onSurfaceVariant.withAlpha(150)),
+        tooltip: connected ? '已连接 ${ble.deviceName}' : '未连接 - 点击扫描',
+        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())),
       ),
     );
   }
@@ -136,48 +120,37 @@ class _ColorTab extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(title: const Text('RGB Controller'), centerTitle: true, elevation: 0, scrolledUnderElevation: 1, actions: const [_BleAction()]),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(20, topPad, 20, 24),
-        children: [
-          const SizedBox(height: 4),
-          const _BleBanner(),
-          const SizedBox(height: 12),
-          _LedStrip(color: color, mode: s.mode, brightness: s.brightness, flowSpeed: s.flowSpeed, cs: cs),
-          const SizedBox(height: 20),
-          _RgbDisplay(r: s.r, g: s.g, b: s.b, cs: cs),
-          const SizedBox(height: 24),
-          _SliderCard(label: '亮度', icon: Icons.brightness_7_rounded, value: s.brightness.toDouble(), min: 1, max: 255, color: cs.primary,
-              onChanged: (v) { final iv = v.round(); ref.read(deviceProvider.notifier).setBrightness(iv); ble.setBrightness(iv); }),
-          const SizedBox(height: 12),
-          _ColorSlidersCard(r: s.r, g: s.g, b: s.b, cs: cs,
-              onR: (v) { ref.read(deviceProvider.notifier).setColor(v, s.g, s.b); ble.setColor(v, s.g, s.b); },
-              onG: (v) { ref.read(deviceProvider.notifier).setColor(s.r, v, s.b); ble.setColor(s.r, v, s.b); },
-              onB: (v) { ref.read(deviceProvider.notifier).setColor(s.r, s.g, v); ble.setColor(s.r, s.g, v); }),
-          const SizedBox(height: 12),
-          _PresetColors(cs: cs, r: s.r, g: s.g, b: s.b, onPick: (r, g, b) { ref.read(deviceProvider.notifier).setColor(r, g, b); ble.setColor(r, g, b); }),
-          SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
-        ],
-      ),
+      body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, 20), children: [
+        const SizedBox(height: 4),
+        const _BleBanner(),
+        const SizedBox(height: 12),
+        _LedStrip(color: color, mode: s.mode, brightness: s.brightness, cs: cs),
+        const SizedBox(height: 16),
+        _RgbDisplay(r: s.r, g: s.g, b: s.b, cs: cs),
+        const SizedBox(height: 16),
+        _SliderCard(label: '亮度', icon: Icons.brightness_7_rounded, value: s.brightness.toDouble(), min: 1, max: 255, color: cs.primary,
+            onChanged: (v) { final iv = v.round(); ref.read(deviceProvider.notifier).setBrightness(iv); ble.setBrightness(iv); }),
+        const SizedBox(height: 12),
+        _ColorSlidersCard(r: s.r, g: s.g, b: s.b, cs: cs,
+            onR: (v) { ref.read(deviceProvider.notifier).setColor(v, s.g, s.b); ble.setColor(v, s.g, s.b); },
+            onG: (v) { ref.read(deviceProvider.notifier).setColor(s.r, v, s.b); ble.setColor(s.r, v, s.b); },
+            onB: (v) { ref.read(deviceProvider.notifier).setColor(s.r, s.g, v); ble.setColor(s.r, s.g, v); }),
+        const SizedBox(height: 12),
+        _PresetColors(cs: cs, r: s.r, g: s.g, b: s.b, onPick: (r, g, b) { ref.read(deviceProvider.notifier).setColor(r, g, b); ble.setColor(r, g, b); }),
+        const SizedBox(height: 24),
+      ]),
     );
   }
 }
 
 class _LedStrip extends StatelessWidget {
-  final Color color;
-  final int mode;
-  final int brightness;
-  final int flowSpeed;
-  final ColorScheme cs;
-  const _LedStrip({required this.color, required this.mode, required this.brightness, required this.flowSpeed, required this.cs});
+  final Color color; final int mode; final int brightness; final ColorScheme cs;
+  const _LedStrip({required this.color, required this.mode, required this.brightness, required this.cs});
 
   @override
   Widget build(BuildContext context) {
     final bf = brightness / 255.0;
-    final litColor = Color.fromARGB(255,
-      (color.r * bf).round().clamp(0, 255),
-      (color.g * bf).round().clamp(0, 255),
-      (color.b * bf).round().clamp(0, 255),
-    );
+    final litColor = Color.fromARGB(255, (color.r * bf).round().clamp(0, 255), (color.g * bf).round().clamp(0, 255), (color.b * bf).round().clamp(0, 255));
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -186,11 +159,11 @@ class _LedStrip extends StatelessWidget {
         const SizedBox(height: 14),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: cs.surfaceContainerLow),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: cs.surfaceContainerLowest),
           child: Column(children: [
-            Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: litColor, cs: cs, index: i))),
+            Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: litColor, cs: cs))),
             const SizedBox(height: 8),
-            Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: litColor, cs: cs, index: i + 4))),
+            Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: litColor, cs: cs))),
           ]),
         ),
         const SizedBox(height: 12),
@@ -211,29 +184,22 @@ class _LedStrip extends StatelessWidget {
 }
 
 class _LedDot extends StatelessWidget {
-  final Color color; final ColorScheme cs; final int index;
-  const _LedDot({required this.color, required this.cs, required this.index});
+  final Color color; final ColorScheme cs;
+  const _LedDot({required this.color, required this.cs});
 
   @override
   Widget build(BuildContext context) {
-    final lit = color.computeLuminance() > 0.08;
+    final lit = color.computeLuminance() > 0.06;
     return Expanded(
-      child: AspectRatio(
-        aspectRatio: 1,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic,
+      child: AspectRatio(aspectRatio: 1,
+        child: AnimatedContainer(duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: lit ? color : cs.surfaceContainerLow,
-            boxShadow: lit ? [BoxShadow(color: color.withAlpha(100), blurRadius: 14, spreadRadius: 3)] : null,
-            border: Border.all(color: lit ? Colors.white.withAlpha(40) : cs.outlineVariant.withAlpha(60), width: lit ? 1.5 : 1),
+            color: lit ? color : cs.surfaceContainerHighest,
+            boxShadow: lit ? [BoxShadow(color: color.withAlpha(80), blurRadius: 12, spreadRadius: 2)] : null,
+            border: Border.all(color: lit ? Colors.white.withAlpha(40) : cs.outlineVariant.withAlpha(80), width: lit ? 1.5 : 1),
           ),
-          child: lit ? Center(
-            child: Container(
-              width: 8, height: 8,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withAlpha(60)),
-            ),
-          ) : null,
+          child: lit ? Center(child: Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withAlpha(50)))) : null,
         ),
       ),
     );
@@ -245,36 +211,31 @@ class _ModeBadge extends StatelessWidget {
   const _ModeBadge({required this.active, required this.label, required this.color});
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+    final cs = Theme.of(context).colorScheme;
+    return AnimatedContainer(duration: const Duration(milliseconds: 300),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), color: active ? color.withAlpha(25) : Colors.transparent, border: Border.all(color: active ? color.withAlpha(80) : Theme.of(context).colorScheme.outlineVariant.withAlpha(60), width: active ? 1.2 : 0.5)),
-      child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: active ? color : Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(120))),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), color: active ? color.withAlpha(25) : Colors.transparent, border: Border.all(color: active ? color.withAlpha(80) : cs.outlineVariant.withAlpha(60), width: active ? 1.2 : 0.5)),
+      child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: active ? color : cs.onSurfaceVariant.withAlpha(120))),
     );
   }
 }
 
 class _RgbDisplay extends StatelessWidget {
-  final int r, g, b;
-  final ColorScheme cs;
+  final int r, g, b; final ColorScheme cs;
   const _RgbDisplay({required this.r, required this.g, required this.b, required this.cs});
-
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(40), color: cs.surfaceContainerLowest, boxShadow: [BoxShadow(color: cs.shadow.withAlpha(20), blurRadius: 8, offset: const Offset(0, 2))]),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          _Chip(label: 'R', value: r, color: const Color(0xFFEF4444)),
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Container(width: 4, height: 4, decoration: BoxDecoration(shape: BoxShape.circle, color: cs.onSurfaceVariant.withAlpha(80)))),
-          _Chip(label: 'G', value: g, color: const Color(0xFF22C55E)),
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Container(width: 4, height: 4, decoration: BoxDecoration(shape: BoxShape.circle, color: cs.onSurfaceVariant.withAlpha(80)))),
-          _Chip(label: 'B', value: b, color: const Color(0xFF3B82F6)),
-        ]),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Center(
+    child: Container(padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(40), color: cs.surfaceContainerLowest, boxShadow: [BoxShadow(color: cs.shadow.withAlpha(20), blurRadius: 8, offset: const Offset(0, 2))]),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        _Chip(label: 'R', value: r, color: const Color(0xFFEF4444)),
+        Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Container(width: 4, height: 4, decoration: BoxDecoration(shape: BoxShape.circle, color: cs.onSurfaceVariant.withAlpha(80)))),
+        _Chip(label: 'G', value: g, color: const Color(0xFF22C55E)),
+        Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Container(width: 4, height: 4, decoration: BoxDecoration(shape: BoxShape.circle, color: cs.onSurfaceVariant.withAlpha(80)))),
+        _Chip(label: 'B', value: b, color: const Color(0xFF3B82F6)),
+      ]),
+    ),
+  );
 }
 
 class _Chip extends StatelessWidget {
@@ -289,27 +250,16 @@ class _Chip extends StatelessWidget {
 }
 
 class _SliderCard extends StatelessWidget {
-  final String label; final IconData icon; final double value; final double min; final double max; final Color color; final ValueChanged<double> onChanged;
+  final String label; final IconData icon; final double value, min, max; final Color color; final ValueChanged<double> onChanged;
   const _SliderCard({required this.label, required this.icon, required this.value, required this.min, required this.max, required this.color, required this.onChanged});
-
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final pct = ((value - min) / (max - min) * 100).round();
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(padding: const EdgeInsets.fromLTRB(20, 16, 20, 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(width: 8),
-          Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface)),
-          const Spacer(),
-          Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: color.withAlpha(25)), child: Text('$pct%', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: color))),
-        ]),
-        SliderTheme(
-          data: SliderThemeData(trackHeight: 6, thumbShape: _GlowThumb(color: color), activeTrackColor: color, inactiveTrackColor: color.withAlpha(30), thumbColor: color, overlayColor: color.withAlpha(20), overlayShape: const RoundSliderOverlayShape(overlayRadius: 18)),
-          child: Slider(value: value, min: min, max: max, onChanged: onChanged),
-        ),
+        Row(children: [Icon(icon, size: 20, color: color), const SizedBox(width: 8), Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface)), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: color.withAlpha(25)), child: Text('$pct%', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: color)))]),
+        SliderTheme(data: SliderThemeData(trackHeight: 6, thumbShape: _GlowThumb(color: color), activeTrackColor: color, inactiveTrackColor: color.withAlpha(30), thumbColor: color, overlayColor: color.withAlpha(20), overlayShape: const RoundSliderOverlayShape(overlayRadius: 18)), child: Slider(value: value, min: min, max: max, onChanged: onChanged)),
       ])),
     );
   }
@@ -330,30 +280,21 @@ class _GlowThumb extends RoundSliderThumbShape {
 }
 
 class _ColorSlidersCard extends StatelessWidget {
-  final int r, g, b;
-  final ColorScheme cs;
-  final ValueChanged<int> onR, onG, onB;
+  final int r, g, b; final ColorScheme cs; final ValueChanged<int> onR, onG, onB;
   const _ColorSlidersCard({required this.r, required this.g, required this.b, required this.cs, required this.onR, required this.onG, required this.onB});
-
   @override
-  Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(padding: const EdgeInsets.fromLTRB(16, 16, 12, 12), child: Column(children: [
-        _SliverRow(label: 'R', icon: Icons.circle, value: r, color: const Color(0xFFEF4444), onChanged: onR),
-        const SizedBox(height: 8),
-        _SliverRow(label: 'G', icon: Icons.circle, value: g, color: const Color(0xFF22C55E), onChanged: onG),
-        const SizedBox(height: 8),
-        _SliverRow(label: 'B', icon: Icons.circle, value: b, color: const Color(0xFF3B82F6), onChanged: onB),
-      ])),
-    );
-  }
+  Widget build(BuildContext context) => Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    child: Padding(padding: const EdgeInsets.fromLTRB(16, 16, 12, 12), child: Column(children: [
+      _SliverRow(label: 'R', icon: Icons.circle, value: r, color: const Color(0xFFEF4444), onChanged: onR),
+      const SizedBox(height: 8), _SliverRow(label: 'G', icon: Icons.circle, value: g, color: const Color(0xFF22C55E), onChanged: onG),
+      const SizedBox(height: 8), _SliverRow(label: 'B', icon: Icons.circle, value: b, color: const Color(0xFF3B82F6), onChanged: onB),
+    ])),
+  );
 }
 
 class _SliverRow extends StatelessWidget {
   final String label; final IconData icon; final int value; final Color color; final ValueChanged<int> onChanged;
   const _SliverRow({required this.label, required this.icon, required this.value, required this.color, required this.onChanged});
-
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -366,31 +307,23 @@ class _SliverRow extends StatelessWidget {
 }
 
 class _PresetColors extends StatelessWidget {
-  final ColorScheme cs;
-  final int r, g, b;
-  final void Function(int r, int g, int b) onPick;
+  final ColorScheme cs; final int r, g, b; final void Function(int r, int g, int b) onPick;
   const _PresetColors({required this.cs, required this.r, required this.g, required this.b, required this.onPick});
-
   @override
   Widget build(BuildContext context) {
     final sel = _findPresetIndex(r, g, b);
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [Icon(Icons.palette_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text('预设颜色', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface))]),
         const SizedBox(height: 16),
         Wrap(spacing: 14, runSpacing: 14, children: List.generate(presetColors.length, (i) {
-          final e = presetColors[i];
-          final cl = Color(e.$1);
+          final e = presetColors[i]; final cl = Color(e.$1);
           final pr = (cl.r * 255).round(); final pg = (cl.g * 255).round(); final pb = (cl.b * 255).round();
           final active = i == sel;
-          return GestureDetector(
-            onTap: () => onPick(pr, pg, pb),
+          return GestureDetector(onTap: () => onPick(pr, pg, pb),
             child: AnimatedContainer(duration: const Duration(milliseconds: 200),
               width: active ? 52 : 48, height: active ? 52 : 48,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: cl,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: cl,
                 boxShadow: [BoxShadow(color: cl.withAlpha(active ? 100 : 60), blurRadius: active ? 16 : 10, spreadRadius: active ? 2 : 1, offset: const Offset(0, 3))],
                 border: Border.all(color: active ? cs.primary : cs.outlineVariant.withAlpha(60), width: active ? 2.5 : 1),
               ),
@@ -423,51 +356,33 @@ class _EffectTab extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(title: const Text('灯效'), centerTitle: true, elevation: 0, scrolledUnderElevation: 1, actions: const [_BleAction()]),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(20, topPad, 20, 24),
-        children: [
-          const SizedBox(height: 4),
-          const _BleBanner(),
-          const SizedBox(height: 12),
-          ...items.map((m) {
-            final sel = s.mode == m.$1;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: sel ? BorderSide(color: m.$5.withAlpha(120), width: 1.5) : BorderSide.none),
-                color: sel ? cs.primaryContainer : cs.surfaceContainerLow,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () { ref.read(deviceProvider.notifier).setMode(m.$1); ble.setMode(m.$1); },
-                  child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
-                    AnimatedContainer(duration: const Duration(milliseconds: 300),
-                      width: 52, height: 52,
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: sel ? m.$5.withAlpha(30) : cs.surfaceContainerLowest),
-                      child: Icon(m.$3, color: sel ? m.$5 : cs.onSurfaceVariant, size: 28),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(m.$2, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: sel ? cs.onPrimaryContainer : cs.onSurface)),
-                      const SizedBox(height: 2),
-                      Text(m.$4, style: TextStyle(fontSize: 13, color: sel ? cs.onPrimaryContainer.withAlpha(180) : cs.onSurfaceVariant)),
-                    ])),
-                    if (sel) Container(width: 28, height: 28, decoration: BoxDecoration(shape: BoxShape.circle, color: m.$5), child: const Icon(Icons.check_rounded, color: Colors.white, size: 18)),
+      body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, 20), children: [
+        const SizedBox(height: 4), const _BleBanner(), const SizedBox(height: 12),
+        ...items.map((m) {
+          final sel = s.mode == m.$1;
+          return Padding(padding: const EdgeInsets.only(bottom: 10),
+            child: Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: sel ? BorderSide(color: m.$5.withAlpha(120), width: 1.5) : BorderSide(color: cs.outlineVariant.withAlpha(60))),
+              color: sel ? cs.primaryContainer : cs.surfaceContainerLow,
+              child: InkWell(borderRadius: BorderRadius.circular(12),
+                onTap: () { ref.read(deviceProvider.notifier).setMode(m.$1); ble.setMode(m.$1); },
+                child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
+                  AnimatedContainer(duration: const Duration(milliseconds: 300), width: 52, height: 52, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: sel ? m.$5.withAlpha(30) : cs.surfaceContainerLowest), child: Icon(m.$3, color: sel ? m.$5 : cs.onSurfaceVariant, size: 28)),
+                  const SizedBox(width: 16),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(m.$2, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: sel ? cs.onPrimaryContainer : cs.onSurface)),
+                    const SizedBox(height: 2),
+                    Text(m.$4, style: TextStyle(fontSize: 13, color: sel ? cs.onPrimaryContainer.withAlpha(180) : cs.onSurfaceVariant)),
                   ])),
-                ),
+                  if (sel) Container(width: 28, height: 28, decoration: BoxDecoration(shape: BoxShape.circle, color: m.$5), child: const Icon(Icons.check_rounded, color: Colors.white, size: 18)),
+                ])),
               ),
-            );
-          }),
-          if (s.mode == 2) ...[
-            const SizedBox(height: 4),
-            _SliderCard(label: '流水速度', icon: Icons.speed_rounded, value: s.flowSpeed.toDouble(), min: 1, max: 255, color: const Color(0xFF3B82F6), onChanged: (v) { final iv = v.round(); ref.read(deviceProvider.notifier).setFlowSpeed(iv); ble.setFlowSpeed(iv); }),
-          ],
-          if (s.mode == 1) ...[
-            const SizedBox(height: 4),
-            _SliderCard(label: '呼吸周期', icon: Icons.timelapse_rounded, value: s.breathPeriod.toDouble(), min: 1, max: 255, color: const Color(0xFF06B6D4), onChanged: (v) { final iv = v.round(); ref.read(deviceProvider.notifier).setBreathPeriod(iv); ble.setBreathPeriod(iv); }),
-          ],
-          SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
-        ],
-      ),
+            ),
+          );
+        }),
+        if (s.mode == 2) ...[ const SizedBox(height: 4), _SliderCard(label: '流水速度', icon: Icons.speed_rounded, value: s.flowSpeed.toDouble(), min: 1, max: 255, color: const Color(0xFF3B82F6), onChanged: (v) { final iv = v.round(); ref.read(deviceProvider.notifier).setFlowSpeed(iv); ble.setFlowSpeed(iv); }) ],
+        if (s.mode == 1) ...[ const SizedBox(height: 4), _SliderCard(label: '呼吸周期', icon: Icons.timelapse_rounded, value: s.breathPeriod.toDouble(), min: 1, max: 255, color: const Color(0xFF06B6D4), onChanged: (v) { final iv = v.round(); ref.read(deviceProvider.notifier).setBreathPeriod(iv); ble.setBreathPeriod(iv); }) ],
+        const SizedBox(height: 24),
+      ]),
     );
   }
 }
@@ -487,54 +402,35 @@ class _SceneTab extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(title: const Text('情景模式'), centerTitle: true, elevation: 0, scrolledUnderElevation: 1, actions: const [_BleAction()]),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(20, topPad, 20, 24),
-        children: [
-          const SizedBox(height: 4),
-          const _BleBanner(),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(children: [
-              Icon(Icons.info_outline_rounded, size: 16, color: cs.onSurfaceVariant),
-              const SizedBox(width: 6),
-              Text('最多保存 8 组场景 · 轻点加载 · 长按保存', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
-            ]),
-          ),
-          const SizedBox(height: 12),
-          GridView.builder(
-            shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.88),
-            itemCount: 8,
-            itemBuilder: (_, i) {
-              final accent = Color(sceneColors[i]);
-              final saved = s.sceneSaved.length > i && s.sceneSaved[i];
-              return Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: saved ? BorderSide(color: accent.withAlpha(120), width: 1.5) : BorderSide.none),
-                color: saved ? accent.withAlpha(15) : cs.surfaceContainerLow,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () => ble.loadScene(i),
-                  onLongPress: () { ble.saveScene(i); ref.read(deviceProvider.notifier).markSceneSaved(i); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已保存到场景 ${i+1}'), duration: const Duration(seconds: 1), behavior: SnackBarBehavior.floating)); },
-                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Stack(clipBehavior: Clip.none, children: [
-                      Container(
-                        width: 48, height: 48,
-                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: accent.withAlpha(saved ? 40 : 25)),
-                        child: Icon(sceneIcons[i], color: accent, size: 26),
-                      ),
-                      if (saved) Positioned(right: -2, top: -2, child: Container(width: 16, height: 16, decoration: BoxDecoration(shape: BoxShape.circle, color: accent), child: const Icon(Icons.check_rounded, color: Colors.white, size: 12))),
-                    ]),
-                    const SizedBox(height: 10),
-                    Text('场景 ${i+1}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: cs.onSurfaceVariant)),
+      body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, 20), children: [
+        const SizedBox(height: 4), const _BleBanner(), const SizedBox(height: 12),
+        Row(children: [Icon(Icons.info_outline_rounded, size: 16, color: cs.onSurfaceVariant), const SizedBox(width: 6), Text('轻点加载 · 长按保存', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant))]),
+        const SizedBox(height: 16),
+        GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.82),
+          itemCount: 8,
+          itemBuilder: (_, i) {
+            final accent = Color(sceneColors[i]);
+            final saved = s.sceneSaved.length > i && s.sceneSaved[i];
+            return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: saved ? BorderSide(color: accent.withAlpha(120), width: 1.5) : BorderSide(color: cs.outlineVariant.withAlpha(60))),
+              color: saved ? accent.withAlpha(15) : cs.surfaceContainerLow,
+              child: InkWell(borderRadius: BorderRadius.circular(12),
+                onTap: () => ble.loadScene(i),
+                onLongPress: () { ble.saveScene(i); ref.read(deviceProvider.notifier).markSceneSaved(i); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已保存到场景 ${i+1}'), duration: const Duration(seconds: 1), behavior: SnackBarBehavior.floating)); },
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Stack(clipBehavior: Clip.none, children: [
+                    Container(width: 44, height: 44, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: accent.withAlpha(saved ? 40 : 25)), child: Icon(sceneIcons[i], color: accent, size: 24)),
+                    if (saved) Positioned(right: -2, top: -2, child: Container(width: 16, height: 16, decoration: BoxDecoration(shape: BoxShape.circle, color: accent), child: const Icon(Icons.check_rounded, color: Colors.white, size: 12))),
                   ]),
-                ),
-              );
-            },
-          ),
-          SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
-        ],
-      ),
+                  const SizedBox(height: 8),
+                  Text('场景 ${i+1}', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: cs.onSurfaceVariant)),
+                ]),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 24),
+      ]),
     );
   }
 }
