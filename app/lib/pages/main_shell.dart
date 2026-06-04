@@ -186,7 +186,7 @@ class _LedStrip extends StatelessWidget {
         const SizedBox(height: 14),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: cs.surfaceContainerHighest),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: cs.surfaceContainerLow),
           child: Column(children: [
             Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: litColor, cs: cs, index: i))),
             const SizedBox(height: 8),
@@ -224,7 +224,7 @@ class _LedDot extends StatelessWidget {
           duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: lit ? color : cs.surfaceContainerHighest,
+            color: lit ? color : cs.surfaceContainerLow,
             boxShadow: lit ? [BoxShadow(color: color.withAlpha(100), blurRadius: 14, spreadRadius: 3)] : null,
             border: Border.all(color: lit ? Colors.white.withAlpha(40) : cs.outlineVariant.withAlpha(60), width: lit ? 1.5 : 1),
           ),
