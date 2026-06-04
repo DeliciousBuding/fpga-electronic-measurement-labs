@@ -1,0 +1,32 @@
+name: rgb_ble_controller
+description: "RGB彩灯蓝牙控制器 - C301综合实验"
+publish_to: 'none'
+version: 0.1.0+2026060401
+
+environment:
+  sdk: ^3.10.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^3.1.0
+  flutter_blue_plus: ^1.35.3
+  shared_preferences: ^2.5.4
+  dynamic_color: ^1.8.1
+  google_fonts: ^8.0.0
+  logger: ^2.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/fonts/
+
+  fonts:
+    - family: MiSans
+      fonts:
+        - asset: assets/fonts/MiSans-Regular.ttf
