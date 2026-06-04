@@ -76,7 +76,7 @@ class _BleBanner extends ConsumerWidget {
             ? const SizedBox.shrink()
             : Card(
                 margin: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 color: cs.errorContainer,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -187,7 +187,7 @@ class _ColorPreview extends StatelessWidget {
             width: 80, height: 80,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: RadialGradient(center: const Alignment(-0.3, -0.3), radius: 1.0, colors: [Colors.white.withAlpha(60), Colors.transparent]),
+              color: Colors.white.withAlpha(25),
             ),
           ),
         ),
@@ -206,7 +206,7 @@ class _RgbDisplay extends StatelessWidget {
     return Center(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(50), color: cs.surfaceContainerHighest, boxShadow: [BoxShadow(color: cs.shadow.withAlpha(20), blurRadius: 8, offset: const Offset(0, 2))]),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(40), color: cs.surfaceContainerLowest, boxShadow: [BoxShadow(color: cs.shadow.withAlpha(20), blurRadius: 8, offset: const Offset(0, 2))]),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           _Chip(label: 'R', value: r, color: const Color(0xFFEF4444)),
           Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Container(width: 4, height: 4, decoration: BoxDecoration(shape: BoxShape.circle, color: cs.onSurfaceVariant.withAlpha(80)))),
@@ -239,14 +239,14 @@ class _SliderCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final pct = ((value - min) / (max - min) * 100).round();
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(padding: const EdgeInsets.fromLTRB(20, 16, 20, 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Icon(icon, size: 20, color: color),
           const SizedBox(width: 8),
           Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface)),
           const Spacer(),
-          Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2), decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: color.withAlpha(25)), child: Text('$pct%', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: color))),
+          Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: color.withAlpha(25)), child: Text('$pct%', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: color))),
         ]),
         SliderTheme(
           data: SliderThemeData(trackHeight: 6, thumbShape: _GlowThumb(color: color), activeTrackColor: color, inactiveTrackColor: color.withAlpha(30), thumbColor: color, overlayColor: color.withAlpha(20), overlayShape: const RoundSliderOverlayShape(overlayRadius: 18)),
@@ -280,7 +280,7 @@ class _ColorSlidersCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(padding: const EdgeInsets.fromLTRB(16, 16, 12, 12), child: Column(children: [
         _SliverRow(label: 'R', icon: Icons.circle, value: r, color: const Color(0xFFEF4444), onChanged: onR),
         const SizedBox(height: 8),
@@ -317,7 +317,7 @@ class _PresetColors extends StatelessWidget {
   Widget build(BuildContext context) {
     final sel = _findPresetIndex(r, g, b);
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [Icon(Icons.palette_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text('预设颜色', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface))]),
         const SizedBox(height: 16),
@@ -376,15 +376,15 @@ class _EffectTab extends ConsumerWidget {
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: sel ? BorderSide(color: m.$5.withAlpha(120), width: 1.5) : BorderSide.none),
-                color: sel ? cs.primaryContainer : cs.surfaceContainerHigh,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: sel ? BorderSide(color: m.$5.withAlpha(120), width: 1.5) : BorderSide.none),
+                color: sel ? cs.primaryContainer : cs.surfaceContainerLow,
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(12),
                   onTap: () { ref.read(deviceProvider.notifier).setMode(m.$1); ble.setMode(m.$1); },
                   child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
                     AnimatedContainer(duration: const Duration(milliseconds: 300),
                       width: 52, height: 52,
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: sel ? m.$5.withAlpha(30) : cs.surfaceContainerHighest),
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: sel ? m.$5.withAlpha(30) : cs.surfaceContainerLowest),
                       child: Icon(m.$3, color: sel ? m.$5 : cs.onSurfaceVariant, size: 28),
                     ),
                     const SizedBox(width: 16),
@@ -452,17 +452,17 @@ class _SceneTab extends ConsumerWidget {
               final accent = Color(sceneColors[i]);
               final saved = s.sceneSaved.length > i && s.sceneSaved[i];
               return Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: saved ? BorderSide(color: accent.withAlpha(120), width: 1.5) : BorderSide.none),
-                color: saved ? accent.withAlpha(15) : cs.surfaceContainerHigh,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: saved ? BorderSide(color: accent.withAlpha(120), width: 1.5) : BorderSide.none),
+                color: saved ? accent.withAlpha(15) : cs.surfaceContainerLow,
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(12),
                   onTap: () => ble.loadScene(i),
                   onLongPress: () { ble.saveScene(i); ref.read(deviceProvider.notifier).markSceneSaved(i); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已保存到场景 ${i+1}'), duration: const Duration(seconds: 1), behavior: SnackBarBehavior.floating)); },
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Stack(clipBehavior: Clip.none, children: [
                       Container(
                         width: 48, height: 48,
-                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: accent.withAlpha(saved ? 40 : 25)),
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: accent.withAlpha(saved ? 40 : 25)),
                         child: Icon(sceneIcons[i], color: accent, size: 26),
                       ),
                       if (saved) Positioned(right: -2, top: -2, child: Container(width: 16, height: 16, decoration: BoxDecoration(shape: BoxShape.circle, color: accent), child: const Icon(Icons.check_rounded, color: Colors.white, size: 12))),
