@@ -26,7 +26,7 @@ class SettingsPage extends ConsumerWidget {
           _SectionHeader(icon: Icons.brush_rounded, title: '外观', cs: cs),
           const SizedBox(height: 8),
           Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
               _SettingRow(icon: Icons.language_rounded, title: '语言', subtitle: isZh ? '中文' : 'English', cs: cs,
                   trailing: SegmentedButton<String>(segments: const [ButtonSegment(value: 'zh', label: Text('中文')), ButtonSegment(value: 'en', label: Text('EN'))], selected: {isZh ? 'zh' : 'en'}, style: ButtonStyle(visualDensity: VisualDensity.compact, shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)))), onSelectionChanged: (v) => ref.read(localeProvider.notifier).set(v.first == 'zh' ? const Locale('zh') : const Locale('en')))),
@@ -39,10 +39,10 @@ class SettingsPage extends ConsumerWidget {
           _SectionHeader(icon: Icons.info_rounded, title: '关于', cs: cs),
           const SizedBox(height: 8),
           Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
               Row(children: [
-                Container(width: 48, height: 48, decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), gradient: LinearGradient(colors: [cs.primary, cs.tertiary])), child: const Icon(Icons.bluetooth_rounded, color: Colors.white, size: 26)),
+                Container(width: 48, height: 48, decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: cs.primary), child: const Icon(Icons.bluetooth_rounded, color: Colors.white, size: 26)),
                 const SizedBox(width: 14),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('RGB 彩灯蓝牙控制器', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: cs.onSurface)),

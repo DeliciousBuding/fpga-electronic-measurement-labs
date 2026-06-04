@@ -105,14 +105,14 @@ class _BLEGateState extends ConsumerState<BLEGate> with SingleTickerProviderStat
       final cs = Theme.of(context).colorScheme;
       return Scaffold(
         body: Container(
-          decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [cs.primaryContainer, cs.tertiaryContainer.withAlpha(120), cs.surface])),
+          decoration: BoxDecoration(color: cs.surface),
           child: Center(
             child: FadeTransition(
               opacity: _splashFade,
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Container(
                   width: 80, height: 80,
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: cs.primaryContainer, boxShadow: [BoxShadow(color: cs.primary.withAlpha(60), blurRadius: 32, spreadRadius: 8)]),
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: cs.primaryContainer, boxShadow: [BoxShadow(color: cs.primary.withAlpha(60), blurRadius: 32, spreadRadius: 8)]),
                   child: Icon(Icons.bluetooth_rounded, size: 40, color: cs.primary),
                 ),
                 const SizedBox(height: 24),

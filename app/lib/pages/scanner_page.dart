@@ -85,7 +85,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
                 builder: (_, child) => Transform.scale(scale: 1.0 + _pulse.value * 0.06, child: child),
                 child: Container(
                   width: 72, height: 72,
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: cs.primaryContainer, boxShadow: [BoxShadow(color: cs.primary.withAlpha(40), blurRadius: 24, spreadRadius: 4)]),
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: cs.primaryContainer, boxShadow: [BoxShadow(color: cs.primary.withAlpha(40), blurRadius: 24, spreadRadius: 4)]),
                   child: Icon(Icons.bluetooth_searching_rounded, size: 36, color: cs.primary),
                 ),
               ),
@@ -104,7 +104,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
                       child: _scanning
                           ? Column(key: const ValueKey('scanning'), mainAxisSize: MainAxisSize.min, children: [SizedBox(width: 32, height: 32, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary)), const SizedBox(height: 18), Text('正在扫描...', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14))])
                           : Column(key: const ValueKey('empty'), mainAxisSize: MainAxisSize.min, children: [
-                              Container(width: 80, height: 80, decoration: BoxDecoration(borderRadius: BorderRadius.circular(24), color: cs.surfaceContainerHighest), child: Icon(Icons.bluetooth_searching_rounded, size: 40, color: cs.onSurfaceVariant.withAlpha(100))),
+                              Container(width: 80, height: 80, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: cs.surfaceContainerLow), child: Icon(Icons.bluetooth_searching_rounded, size: 40, color: cs.onSurfaceVariant.withAlpha(100))),
                               const SizedBox(height: 18),
                               Text('未发现设备', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: cs.onSurfaceVariant)),
                               const SizedBox(height: 6),
@@ -117,9 +117,9 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
                     itemBuilder: (_, i) {
                       final d = _devices[i]; final loading = _connectingId == d.device.remoteId.str;
                       return Card(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         child: InkWell(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(12),
                           onTap: loading ? null : () => _connect(d),
                           child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
                             Container(width: 48, height: 48, decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: cs.primaryContainer), child: loading ? Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary))) : Icon(Icons.devices_rounded, color: cs.primary, size: 24)),
@@ -129,7 +129,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
                               const SizedBox(height: 2),
                               Text(d.device.remoteId.str, style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
                             ])),
-                            Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: _rssi(d.rssi).withAlpha(20)), child: Text('${d.rssi} dBm', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _rssi(d.rssi)))),
+                            Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: _rssi(d.rssi).withAlpha(20)), child: Text('${d.rssi} dBm', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _rssi(d.rssi)))),
                             const SizedBox(width: 4),
                             Icon(Icons.chevron_right_rounded, color: cs.onSurfaceVariant.withAlpha(120)),
                           ])),
@@ -149,7 +149,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
       const Spacer(),
       Container(
         width: 100, height: 100,
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(28), color: cs.surfaceContainerHighest),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: cs.surfaceContainerLow),
         child: Icon(Icons.bluetooth_disabled_rounded, size: 48, color: cs.onSurfaceVariant.withAlpha(100)),
       ),
       const SizedBox(height: 20),
