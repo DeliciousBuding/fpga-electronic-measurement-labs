@@ -142,7 +142,7 @@ class _ColorTab extends ConsumerWidget {
           const SizedBox(height: 4),
           const _BleBanner(),
           const SizedBox(height: 12),
-          _ColorPreview(color: color, cs: cs),
+          _LedStrip(color: color, mode: s.mode, brightness: s.brightness, flowSpeed: s.flowSpeed, cs: cs),
           const SizedBox(height: 20),
           _RgbDisplay(r: s.r, g: s.g, b: s.b, cs: cs),
           const SizedBox(height: 24),
@@ -158,6 +158,78 @@ class _ColorTab extends ConsumerWidget {
           SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
         ],
       ),
+    );
+  }
+}
+
+class _LedStrip extends StatelessWidget {
+  final Color color;
+  final int mode;
+  final int brightness;
+  final int flowSpeed;
+  final ColorScheme cs;
+  const _LedStrip({required this.color, required this.mode, required this.brightness, required this.flowSpeed, required this.cs});
+
+  @override
+  Widget build(BuildContext context) {
+    final leds = List.generate(8, (i) {
+      final brightnessFactor = brightness / 255.0;
+      final r = (color.r * brightnessFactor).round().clamp(0, 255);
+      final g = (color.g * brightnessFactor).round().clamp(0, 255);
+      final b = (color.b * brightnessFactor).round().clamp(0, 255);
+      return Color.fromARGB(255, r, g, b);
+    });
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(padding: const EdgeInsets.fromLTRB(16, 20, 16, 20), child: Column(children: [
+        Row(children: [Icon(Icons.light_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text('LED 状态', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface)), const Spacer(), Badge(backgroundColor: color, label: Text('$brightness', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11, color: Colors.white))), const SizedBox(width: 8), Text('亮度', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant))]),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 52,
+          child: Row(spacing: 8, children: List.generate(8, (i) {
+            final ledColor = leds[i];
+            final glow = ledColor.computeLuminance() > 0.1;
+            return Expanded(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: ledColor,
+                  boxShadow: glow ? [BoxShadow(color: ledColor.withAlpha(80), blurRadius: 12, spreadRadius: 2)] : null,
+                  border: Border.all(color: cs.outlineVariant.withAlpha(60), width: 0.5),
+                ),
+              ),
+            );
+          })),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(height: 32, child: Row(children: [
+          _ModeBadge(active: mode == 0, label: '静态', color: cs.primary),
+          const SizedBox(width: 6),
+          _ModeBadge(active: mode == 1, label: '呼吸', color: const Color(0xFF06B6D4)),
+          const SizedBox(width: 6),
+          _ModeBadge(active: mode == 2, label: '流水', color: const Color(0xFF3B82F6)),
+          const SizedBox(width: 6),
+          _ModeBadge(active: mode == 3, label: '渐变', color: const Color(0xFF8B5CF6)),
+          const SizedBox(width: 6),
+          _ModeBadge(active: mode == 4, label: '音乐', color: const Color(0xFFEC4899)),
+        ])),
+      ])),
+    );
+  }
+}
+
+class _ModeBadge extends StatelessWidget {
+  final bool active; final String label; final Color color;
+  const _ModeBadge({required this.active, required this.label, required this.color});
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), color: active ? color.withAlpha(25) : Colors.transparent, border: Border.all(color: active ? color.withAlpha(80) : Theme.of(context).colorScheme.outlineVariant.withAlpha(60), width: active ? 1.2 : 0.5)),
+      child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: active ? color : Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(120))),
     );
   }
 }
