@@ -504,7 +504,7 @@ class _SceneTab extends ConsumerWidget {
             return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: saved ? BorderSide(color: accent.withAlpha(120), width: 1.5) : BorderSide(color: cs.outlineVariant.withAlpha(60))),
               color: saved ? accent.withAlpha(15) : cs.surfaceContainerLow,
               child: InkWell(borderRadius: BorderRadius.circular(12),
-                onTap: () => ble.loadScene(i),
+                onTap: () { ble.loadScene(i); Future.delayed(const Duration(milliseconds: 300), () => ble.queryStatus()); },
                 onLongPress: () { ble.saveScene(i); ref.read(deviceProvider.notifier).markSceneSaved(i); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已保存到场景 ${i+1}'), duration: const Duration(seconds: 1), behavior: SnackBarBehavior.floating)); },
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Stack(clipBehavior: Clip.none, children: [
