@@ -232,6 +232,8 @@ class BLEService {
 
   // --- send ---
 
+  final _throttleTimers = <String, Timer>{};
+
   Future<void> _send(Uint8List data) async {
     if (_txChar == null) {
       _addDebug('TX skipped (no char): ${_hex(data)}');
@@ -246,18 +248,36 @@ class BLEService {
     }
   }
 
-  // --- public commands ---
+  /// Throttled send: first call sends immediately, subsequent calls within
+  /// [ms] are coalesced — only the latest payload is sent after the gap.
+  void _throttledSend(String key, Uint8List data, {int ms = 80}) {
+    _throttleTimers[key]?.cancel();
+    _send(data);
+    _throttleTimers[key] = Timer(Duration(milliseconds: ms), () {
+      _throttleTimers.remove(key);
+    });
+  }
+
+  // --- public commands (immediate for discrete, throttled for continuous) ---
 
   Future<void> setColor(int r, int g, int b) =>
       _send(Uint8List.fromList([0x10, r, g, b]));
+  void setColorThrottled(int r, int g, int b) =>
+      _throttledSend('color', Uint8List.fromList([0x10, r, g, b]));
   Future<void> setBrightness(int v) =>
       _send(Uint8List.fromList([0x11, v.clamp(0, 255)]));
+  void setBrightnessThrottled(int v) =>
+      _throttledSend('bright', Uint8List.fromList([0x11, v.clamp(0, 255)]));
   Future<void> setMode(int m) =>
       _send(Uint8List.fromList([0x20, m]));
   Future<void> setFlowSpeed(int v) =>
       _send(Uint8List.fromList([0x21, v.clamp(0, 255)]));
+  void setFlowSpeedThrottled(int v) =>
+      _throttledSend('flow', Uint8List.fromList([0x21, v.clamp(0, 255)]));
   Future<void> setBreathPeriod(int v) =>
       _send(Uint8List.fromList([0x22, v.clamp(0, 255)]));
+  void setBreathPeriodThrottled(int v) =>
+      _throttledSend('breath', Uint8List.fromList([0x22, v.clamp(0, 255)]));
   Future<void> saveScene(int v) =>
       _send(Uint8List.fromList([0x30, v]));
   Future<void> loadScene(int v) =>
@@ -290,6 +310,7 @@ class BLEService {
     _rxSub?.cancel();
     _connSub?.cancel();
     _statusTimeout?.cancel();
+    for (final t in _throttleTimers.values) { t.cancel(); }
     _eventController.close();
     _isConnected.dispose();
   }
