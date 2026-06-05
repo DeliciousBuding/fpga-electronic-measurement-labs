@@ -78,6 +78,7 @@ CMD   Name            Args              FPGA Response
 | M3 | ModelSim 全链路仿真 (18/18 PASS) | **done** |
 | M4 | Flutter APP 全功能 | **done** |
 | M4.1 | APP BLE 响应解析 + 状态同步 + debug 日志 | **done** |
+| M4.2 | APP i18n (zh/en) + Material 3 全面对齐 + 真机交互增强 | **done** |
 | M5 | FFT 音乐联动 (选做) | todo |
 | M6 | 多灯同步控制 (选做) | todo |
 | M7 | Quartus 编译 + 上板 | **done** |

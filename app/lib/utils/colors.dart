@@ -1,5 +1,30 @@
 import 'dart:ui';
 
+/// Returns localized color name for the given index.
+String colorName(int index) => switch (index) {
+  0 => 'colorRed',
+  1 => 'colorOrange',
+  2 => 'colorYellow',
+  3 => 'colorGreen',
+  4 => 'colorCyan',
+  5 => 'colorBlue',
+  6 => 'colorPurple',
+  7 => 'colorPink',
+  8 => 'colorWhite',
+  9 => 'colorWarmRed',
+  10 => 'colorWarmYellow',
+  11 => 'colorWarmGreen',
+  12 => 'colorCoral',
+  13 => 'colorMint',
+  14 => 'colorLavender',
+  15 => 'colorAmber',
+  16 => 'colorTangerine',
+  17 => 'colorEmerald',
+  18 => 'colorSkyBlue',
+  19 => 'colorMagenta',
+  _ => '',
+};
+
 const presetColors = [
   // row 1 — basics
   (0xFFEF4444, '红'),
