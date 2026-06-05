@@ -29,7 +29,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(t.navSettings), centerTitle: true, elevation: 0, scrolledUnderElevation: 1,
+        title: Text(t.navSettings), centerTitle: false, elevation: 0, scrolledUnderElevation: 1,
         actions: [Padding(padding: const EdgeInsets.only(right: 4), child: ValueListenableBuilder(valueListenable: ble.isConnected, builder: (context, connected, _) => IconButton(icon: connected ? Badge(isLabelVisible: true, smallSize: 8, child: Icon(Icons.bluetooth_connected_rounded, color: cs.primary)) : Icon(Icons.bluetooth_rounded, color: cs.onSurfaceVariant.withAlpha(150)), tooltip: connected ? t.bleTooltipConnected(ble.deviceName) : t.bleTooltipDisconnected, onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())))))],
       ),
       body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, bottomPad), children: [

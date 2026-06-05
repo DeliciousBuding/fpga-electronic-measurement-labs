@@ -85,7 +85,6 @@ class _MainShellState extends ConsumerState<MainShell> with SingleTickerProvider
             child: NavigationBar(
               selectedIndex: _index, animationDuration: const Duration(milliseconds: 400),
               onDestinationSelected: (i) { ref.read(barVisibilityProvider.notifier).show(); _pageCtrl.animateToPage(i, duration: const Duration(milliseconds: 350), curve: Curves.easeInOutCubic); setState(() => _index = i); },
-              indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               destinations: [
                 NavigationDestination(icon: const Icon(Icons.lightbulb_outline_rounded, size: 22), selectedIcon: const Icon(Icons.lightbulb_rounded, size: 22), label: t.navLed),
                 NavigationDestination(icon: const Icon(Icons.auto_awesome_rounded, size: 22), selectedIcon: const Icon(Icons.auto_awesome_rounded, size: 22), label: t.navEffect),
@@ -112,7 +111,7 @@ class _BleBanner extends ConsumerWidget {
       builder: (context, connected, _) => AnimatedSize(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut,
         child: connected ? const SizedBox.shrink() : Card(
           margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           color: cs.errorContainer,
           child: Padding(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), child: Row(children: [
             Icon(Icons.bluetooth_disabled_rounded, size: 20, color: cs.onErrorContainer),
@@ -182,7 +181,7 @@ class _ColorTab extends ConsumerWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(title: Text(t.appTitle), centerTitle: true, elevation: 0, scrolledUnderElevation: 1, surfaceTintColor: Colors.transparent, actions: const [_BleAction()]),
+      appBar: AppBar(title: Text(t.appTitle), centerTitle: false, elevation: 0, scrolledUnderElevation: 1, surfaceTintColor: Colors.transparent, actions: const [_BleAction()]),
       body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, bottomPad), children: [
         const SizedBox(height: 4),
         const _BleBanner(),
@@ -312,7 +311,7 @@ class _ColorHeroState extends State<_ColorHero> with SingleTickerProviderStateMi
             const SizedBox(height: 12),
             // hex label
             Builder(builder: (context) {
-              final hex = '#${widget.color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
+              final hex = '#${(widget.color.r * 255).round().toRadixString(16).padLeft(2, '0')}${(widget.color.g * 255).round().toRadixString(16).padLeft(2, '0')}${(widget.color.b * 255).round().toRadixString(16).padLeft(2, '0')}'.toUpperCase();
               return Tooltip(
                 message: t.copyHexTooltip(hex),
                 child: InkWell(
@@ -383,7 +382,7 @@ class _ModeBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedContainer(duration: const Duration(milliseconds: 300),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), color: active ? color.withAlpha(25) : Colors.transparent, border: Border.all(color: active ? color.withAlpha(80) : Theme.of(context).colorScheme.outlineVariant.withAlpha(60), width: active ? 1.2 : 0.5)),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: active ? color.withAlpha(25) : Colors.transparent, border: Border.all(color: active ? color.withAlpha(80) : Theme.of(context).colorScheme.outlineVariant.withAlpha(60), width: active ? 1.2 : 0.5)),
       child: Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600, color: active ? color : Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(120))),
     );
   }
@@ -397,10 +396,11 @@ class _SliderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final t = AppLocalizations.of(context)!;
     final pct = ((value - min) / (max - min) * 100).round();
     return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(padding: const EdgeInsets.fromLTRB(20, 16, 20, 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [Icon(icon, size: 20, color: color), const SizedBox(width: 8), Text(label, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface)), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: color.withAlpha(25)), child: Text('$pct%', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: color)))]),
+        Row(children: [Icon(icon, size: 20, color: color), const SizedBox(width: 8), Text(label, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface)), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: color.withAlpha(25)), child: Text(t.brightnessPercent(pct), style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: color)))]),
         SliderTheme(data: SliderThemeData(trackHeight: 6, thumbShape: _GlowThumb(color: color), activeTrackColor: color, inactiveTrackColor: color.withAlpha(30), thumbColor: color, overlayColor: color.withAlpha(20), overlayShape: const RoundSliderOverlayShape(overlayRadius: 18)), child: Slider(value: value, min: min, max: max, onChanged: onChanged)),
       ])),
     );
@@ -429,7 +429,7 @@ class _ColorSlidersCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final t = AppLocalizations.of(context)!;
     return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(padding: const EdgeInsets.fromLTRB(16, 16, 12, 12), child: Column(children: [
+      child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
         Row(children: [Icon(Icons.tune_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text(t.ledStrip, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface))]),
         const SizedBox(height: 14),
         _SliverRow(label: 'R', icon: Icons.circle, value: r, color: const Color(0xFFEF4444), onChanged: onR),
@@ -564,7 +564,7 @@ class _EffectTab extends ConsumerWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(title: Text(t.navEffect), centerTitle: true, elevation: 0, scrolledUnderElevation: 1, actions: const [_BleAction()]),
+      appBar: AppBar(title: Text(t.navEffect), centerTitle: false, elevation: 0, scrolledUnderElevation: 1, actions: const [_BleAction()]),
       body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, bottomPad), children: [
         const SizedBox(height: 4), const _BleBanner(), const SizedBox(height: 12),
         ...items.map((m) {
@@ -689,7 +689,7 @@ class _SceneTab extends ConsumerWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(title: Text(t.sceneTitle), centerTitle: true, elevation: 0, scrolledUnderElevation: 1, actions: const [_BleAction()]),
+      appBar: AppBar(title: Text(t.sceneTitle), centerTitle: false, elevation: 0, scrolledUnderElevation: 1, actions: const [_BleAction()]),
       body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, bottomPad), children: [
         const SizedBox(height: 4), const _BleBanner(), const SizedBox(height: 12),
         Row(children: [Icon(Icons.info_outline_rounded, size: 16, color: cs.onSurfaceVariant), const SizedBox(width: 6), Text(t.sceneHint, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant))]),
@@ -702,9 +702,9 @@ class _SceneTab extends ConsumerWidget {
             final accent = scene.$2;
             final colors = scene.$4;
             final saved = s.sceneSaved.length > i && s.sceneSaved[i];
-            return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: saved ? BorderSide(color: accent.withAlpha(120), width: 1.5) : BorderSide(color: cs.outlineVariant.withAlpha(60))),
+            return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: saved ? BorderSide(color: accent.withAlpha(120), width: 1.5) : BorderSide(color: cs.outlineVariant.withAlpha(60))),
               color: saved ? accent.withAlpha(15) : cs.surfaceContainerLow,
-              child: InkWell(borderRadius: BorderRadius.circular(14),
+              child: InkWell(borderRadius: BorderRadius.circular(12),
                 onTap: () { HapticFeedback.selectionClick(); ble.loadScene(i); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.sceneLoaded(scene.$3)), duration: const Duration(seconds: 1), behavior: SnackBarBehavior.floating)); Future.delayed(const Duration(milliseconds: 300), () => ble.queryStatus()); },
                 onLongPress: () { HapticFeedback.mediumImpact(); ble.saveScene(i); ref.read(deviceProvider.notifier).markSceneSaved(i); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.sceneSaved(scene.$3)), duration: const Duration(seconds: 1), behavior: SnackBarBehavior.floating)); },
                 child: Padding(padding: const EdgeInsets.all(12), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
