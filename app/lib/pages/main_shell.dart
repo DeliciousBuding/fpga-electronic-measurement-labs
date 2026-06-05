@@ -228,12 +228,14 @@ class _ColorHeroState extends State<_ColorHero> with SingleTickerProviderStateMi
 
   Color _ledColor(int index, Color base) {
     final bf = widget.brightness / 255.0;
-    final c = Color.fromARGB(255, (base.r * bf).round().clamp(0, 255), (base.g * bf).round().clamp(0, 255), (base.b * bf).round().clamp(0, 255));
+    final r = (base.r * 255.0 * bf).round().clamp(0, 255);
+    final g = (base.g * 255.0 * bf).round().clamp(0, 255);
+    final b = (base.b * 255.0 * bf).round().clamp(0, 255);
     switch (widget.mode) {
       case 1:
         final v = _anim.value * 2 * math.pi;
         final sin = (0.5 + 0.5 * math.sin(v)).clamp(0.0, 1.0);
-        return Color.fromARGB(255, (c.r * sin).round(), (c.g * sin).round(), (c.b * sin).round());
+        return Color.fromARGB(255, (r * sin).round(), (g * sin).round(), (b * sin).round());
       case 2:
         final t = _anim.value * 8;
         final pos = t % 8;
@@ -241,12 +243,12 @@ class _ColorHeroState extends State<_ColorHero> with SingleTickerProviderStateMi
         final wrapped = (8 - dist).abs();
         final minDist = dist < wrapped ? dist : wrapped;
         final f = (1.0 - minDist / 2.5).clamp(0.0, 1.0);
-        return Color.fromARGB(255, (c.r * f).round(), (c.g * f).round(), (c.b * f).round());
+        return Color.fromARGB(255, (r * f).round(), (g * f).round(), (b * f).round());
       case 3:
         final hue = (_anim.value * 360 + index * 20) % 360;
         return HSVColor.fromAHSV(1.0, hue, 1.0, bf).toColor();
       default:
-        return c;
+        return Color.fromARGB(255, r, g, b);
     }
   }
 
