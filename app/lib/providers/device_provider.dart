@@ -39,11 +39,27 @@ class DeviceNotifier extends Notifier<DeviceState> {
   @override
   DeviceState build() => const DeviceState();
 
-  void setColor(int r, int g, int b) => state = state.copyWith(r: r, g: g, b: b);
-  void setBrightness(int v) => state = state.copyWith(brightness: v);
-  void setMode(int m) => state = state.copyWith(mode: m);
-  void setFlowSpeed(int v) => state = state.copyWith(flowSpeed: v);
-  void setBreathPeriod(int v) => state = state.copyWith(breathPeriod: v);
+  /// Update all fields from FPGA 0xFF status response.
+  void updateFromStatus(int mode, int r, int g, int b, int brightness) {
+    state = state.copyWith(
+      r: r.clamp(0, 255),
+      g: g.clamp(0, 255),
+      b: b.clamp(0, 255),
+      brightness: brightness.clamp(0, 255),
+      mode: mode.clamp(0, 4),
+    );
+  }
+
+  void setColor(int r, int g, int b) =>
+      state = state.copyWith(r: r.clamp(0, 255), g: g.clamp(0, 255), b: b.clamp(0, 255));
+  void setBrightness(int v) =>
+      state = state.copyWith(brightness: v.clamp(0, 255));
+  void setMode(int m) =>
+      state = state.copyWith(mode: m.clamp(0, 4));
+  void setFlowSpeed(int v) =>
+      state = state.copyWith(flowSpeed: v.clamp(0, 255));
+  void setBreathPeriod(int v) =>
+      state = state.copyWith(breathPeriod: v.clamp(0, 255));
   void markSceneSaved(int i) {
     final l = List<bool>.from(state.sceneSaved);
     l[i] = true;

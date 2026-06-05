@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +17,43 @@ class MainShell extends ConsumerStatefulWidget {
 
 class _MainShellState extends ConsumerState<MainShell> {
   int _index = 0;
+  StreamSubscription<BleEvent>? _bleSub;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _setupBleListener());
+  }
+
+  @override
+  void dispose() {
+    _bleSub?.cancel();
+    super.dispose();
+  }
+
+  void _setupBleListener() {
+    final ble = ref.read(bleServiceProvider);
+    _bleSub = ble.events.listen((event) {
+      if (!mounted) return;
+      if (event is BleStatusEvent) {
+        ref.read(deviceProvider.notifier).updateFromStatus(
+              event.mode, event.r, event.g, event.b, event.brightness,
+            );
+      } else if (event is BleAckEvent && !event.success) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('命令执行失败 (0xEE)'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ));
+      } else if (event is BleConnectionEvent && event.connected && event.name != null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('已连接 ${event.name}'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ));
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,12 +127,24 @@ class _BleAction extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     return ValueListenableBuilder(
       valueListenable: ble.isConnected,
-      builder: (_, connected, __) => IconButton(
-        icon: connected
-            ? Badge(isLabelVisible: true, smallSize: 8, child: Icon(Icons.bluetooth_connected_rounded, color: cs.primary))
-            : Icon(Icons.bluetooth_rounded, color: cs.onSurfaceVariant.withAlpha(150)),
-        tooltip: connected ? '已连接 ${ble.deviceName}' : '未连接 - 点击扫描',
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())),
+      builder: (_, connected, __) => Tooltip(
+        message: connected ? '已连接 ${ble.deviceName} - 长按刷新状态' : '未连接 - 点击扫描',
+        child: IconButton(
+          icon: connected
+              ? Badge(isLabelVisible: true, smallSize: 8, child: Icon(Icons.bluetooth_connected_rounded, color: cs.primary))
+              : Icon(Icons.bluetooth_rounded, color: cs.onSurfaceVariant.withAlpha(150)),
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())),
+          onLongPress: connected
+              ? () {
+                  ble.queryStatus();
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: const Text('正在刷新 FPGA 状态...'),
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 1),
+                  ));
+                }
+              : null,
+        ),
       ),
     );
   }
@@ -383,11 +433,11 @@ class _EffectTab extends ConsumerWidget {
     final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
 
     final items = [
-      (0, '静态', Icons.light_mode_rounded, '固定颜色常亮', Color(0xFFFFD93D)),
-      (1, '呼吸', Icons.air_rounded, '正弦包络周期明暗', Color(0xFF06B6D4)),
-      (2, '流水', Icons.waves_rounded, '灯光逐位移动', Color(0xFF3B82F6)),
-      (3, '渐变', Icons.gradient_rounded, 'HSV 色相平滑过渡', Color(0xFF8B5CF6)),
-      (4, '音乐', Icons.music_note_rounded, '随音频节拍律动', Color(0xFFEC4899)),
+      (0, '静态', Icons.light_mode_rounded, '固定颜色常亮', Color(0xFFFFD93D), false),
+      (1, '呼吸', Icons.air_rounded, '正弦包络周期明暗', Color(0xFF06B6D4), false),
+      (2, '流水', Icons.waves_rounded, '灯光逐位移动', Color(0xFF3B82F6), false),
+      (3, '渐变', Icons.gradient_rounded, 'HSV 色相平滑过渡', Color(0xFF8B5CF6), false),
+      (4, '音乐', Icons.music_note_rounded, 'FFT 联动 (未实现)', Color(0xFFEC4899), true),
     ];
 
     return Scaffold(
@@ -397,20 +447,22 @@ class _EffectTab extends ConsumerWidget {
         const SizedBox(height: 4), const _BleBanner(), const SizedBox(height: 12),
         ...items.map((m) {
           final sel = s.mode == m.$1;
+          final disabled = m.$6;
           return Padding(padding: const EdgeInsets.only(bottom: 10),
             child: Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: sel ? BorderSide(color: m.$5.withAlpha(120), width: 1.5) : BorderSide(color: cs.outlineVariant.withAlpha(60))),
-              color: sel ? cs.primaryContainer : cs.surfaceContainerLow,
+              color: disabled ? cs.surfaceContainerLowest : (sel ? cs.primaryContainer : cs.surfaceContainerLow),
               child: InkWell(borderRadius: BorderRadius.circular(12),
-                onTap: () { ref.read(deviceProvider.notifier).setMode(m.$1); ble.setMode(m.$1); },
+                onTap: disabled ? null : () { ref.read(deviceProvider.notifier).setMode(m.$1); ble.setMode(m.$1); },
                 child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
-                  AnimatedContainer(duration: const Duration(milliseconds: 300), width: 52, height: 52, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: sel ? m.$5.withAlpha(30) : cs.surfaceContainerLowest), child: Icon(m.$3, color: sel ? m.$5 : cs.onSurfaceVariant, size: 28)),
+                  AnimatedContainer(duration: const Duration(milliseconds: 300), width: 52, height: 52, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: sel ? m.$5.withAlpha(30) : cs.surfaceContainerLowest), child: Icon(m.$3, color: disabled ? cs.onSurfaceVariant.withAlpha(60) : (sel ? m.$5 : cs.onSurfaceVariant), size: 28)),
                   const SizedBox(width: 16),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(m.$2, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: sel ? cs.onPrimaryContainer : cs.onSurface)),
+                    Text(m.$2, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: disabled ? cs.onSurfaceVariant.withAlpha(80) : (sel ? cs.onPrimaryContainer : cs.onSurface))),
                     const SizedBox(height: 2),
-                    Text(m.$4, style: TextStyle(fontSize: 13, color: sel ? cs.onPrimaryContainer.withAlpha(180) : cs.onSurfaceVariant)),
+                    Text(m.$4, style: TextStyle(fontSize: 13, color: disabled ? cs.onSurfaceVariant.withAlpha(60) : (sel ? cs.onPrimaryContainer.withAlpha(180) : cs.onSurfaceVariant))),
                   ])),
-                  if (sel) Container(width: 28, height: 28, decoration: BoxDecoration(shape: BoxShape.circle, color: m.$5), child: const Icon(Icons.check_rounded, color: Colors.white, size: 18)),
+                  if (disabled) Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), color: cs.outlineVariant.withAlpha(30)), child: Text('WIP', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant.withAlpha(100))))
+                  else if (sel) Container(width: 28, height: 28, decoration: BoxDecoration(shape: BoxShape.circle, color: m.$5), child: const Icon(Icons.check_rounded, color: Colors.white, size: 18)),
                 ])),
               ),
             ),
