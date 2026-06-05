@@ -87,9 +87,9 @@ class _MainShellState extends ConsumerState<MainShell> with SingleTickerProvider
               onDestinationSelected: (i) { ref.read(barVisibilityProvider.notifier).show(); _pageCtrl.animateToPage(i, duration: const Duration(milliseconds: 350), curve: Curves.easeInOutCubic); setState(() => _index = i); },
               indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               destinations: [
-                NavigationDestination(icon: const Icon(Icons.light_rounded, size: 22), selectedIcon: const Icon(Icons.light_rounded, size: 22), label: t.navLed),
+                NavigationDestination(icon: const Icon(Icons.lightbulb_outline_rounded, size: 22), selectedIcon: const Icon(Icons.lightbulb_rounded, size: 22), label: t.navLed),
                 NavigationDestination(icon: const Icon(Icons.auto_awesome_rounded, size: 22), selectedIcon: const Icon(Icons.auto_awesome_rounded, size: 22), label: t.navEffect),
-                NavigationDestination(icon: const Icon(Icons.bookmark_rounded, size: 22), selectedIcon: const Icon(Icons.bookmark_rounded, size: 22), label: t.navScene),
+                NavigationDestination(icon: const Icon(Icons.bookmark_border_rounded, size: 22), selectedIcon: const Icon(Icons.bookmark_rounded, size: 22), label: t.navScene),
                 NavigationDestination(icon: const Icon(Icons.tune_rounded, size: 22), selectedIcon: const Icon(Icons.tune_rounded, size: 22), label: t.navSettings),
               ],
             ),

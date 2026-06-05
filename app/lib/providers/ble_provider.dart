@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'theme_provider.dart';
 
 final _log = Logger(printer: PrettyPrinter(methodCount: 0));
 
@@ -50,10 +52,13 @@ class BleConnectionEvent extends BleEvent {
 enum _ParseState { idle, collectingStatus }
 
 class BLEService {
+  static const _kLastDevice = 'ble_last_device_id';
+
   BluetoothDevice? _device;
   BluetoothCharacteristic? _txChar;
   StreamSubscription<List<int>>? _rxSub;
   StreamSubscription? _connSub;
+  SharedPreferences? _prefs;
 
   final _isConnected = ValueNotifier<bool>(false);
   final _eventController = StreamController<BleEvent>.broadcast();
@@ -99,6 +104,19 @@ class BLEService {
         .first
         .timeout(const Duration(seconds: 5));
     _addDebug('BLE adapter ready');
+
+    // auto-reconnect to last known device
+    final lastId = _prefs?.getString(_kLastDevice);
+    if (lastId != null) {
+      _lastConnectedDeviceId = lastId;
+      _addDebug('Auto-reconnect to $lastId...');
+      try {
+        final device = BluetoothDevice.fromId(lastId);
+        await connect(device);
+      } catch (e) {
+        _addDebug('Auto-reconnect skipped: $e');
+      }
+    }
   }
 
   // --- scan ---
@@ -127,6 +145,7 @@ class BLEService {
       await device.connect(timeout: const Duration(seconds: 10));
       _device = device;
       _lastConnectedDeviceId = device.remoteId.str;
+      _prefs?.setString(_kLastDevice, _lastConnectedDeviceId!);
       final services = await device.discoverServices();
 
       BluetoothService? target;
@@ -196,6 +215,7 @@ class BLEService {
   Future<void> disconnect() async {
     _manualDisconnect = true;
     _cancelReconnect();
+    _prefs?.remove(_kLastDevice);
     _lastConnectedDeviceId = _device?.remoteId.str;
     await _device?.disconnect();
   }
@@ -373,7 +393,8 @@ class BLEService {
 // --- provider ---
 
 final bleServiceProvider = Provider<BLEService>((ref) {
-  final svc = BLEService();
+  final prefs = ref.watch(sharedPreferencesProvider);
+  final svc = BLEService().._prefs = prefs;
   ref.onDispose(() => svc.dispose());
   return svc;
 });
