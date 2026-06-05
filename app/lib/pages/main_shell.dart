@@ -532,7 +532,7 @@ class _EffectTab extends ConsumerWidget {
               child: InkWell(borderRadius: BorderRadius.circular(12),
                 onTap: disabled ? null : () { HapticFeedback.selectionClick(); ref.read(deviceProvider.notifier).setMode(m.$1); ble.setMode(m.$1); },
                 child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
-                  _EffectPreview(mode: m.$1, color: m.$5, active: sel, disabled: disabled, cs: cs),
+                  _EffectPreview(mode: m.$1, color: m.$5, active: sel, disabled: disabled),
                   const SizedBox(width: 16),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(m.$2, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: disabled ? cs.onSurfaceVariant.withAlpha(80) : (sel ? cs.onPrimaryContainer : cs.onSurface))),
@@ -555,8 +555,8 @@ class _EffectTab extends ConsumerWidget {
 }
 
 class _EffectPreview extends StatefulWidget {
-  final int mode; final Color color; final bool active, disabled; final ColorScheme cs;
-  const _EffectPreview({required this.mode, required this.color, required this.active, required this.disabled, required this.cs});
+  final int mode; final Color color; final bool active, disabled;
+  const _EffectPreview({required this.mode, required this.color, required this.active, required this.disabled});
   @override
   State<_EffectPreview> createState() => _EffectPreviewState();
 }
@@ -587,12 +587,13 @@ class _EffectPreviewState extends State<_EffectPreview> with SingleTickerProvide
 
   @override
   Widget build(BuildContext context) {
-    final c = widget.disabled ? widget.cs.onSurfaceVariant.withAlpha(60) : widget.color;
+    final cs = Theme.of(context).colorScheme;
+    final c = widget.disabled ? cs.onSurfaceVariant.withAlpha(60) : widget.color;
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (context, child) => Container(
         width: 52, height: 52,
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: widget.active ? c.withAlpha(30) : widget.cs.surfaceContainerLowest),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: widget.active ? c.withAlpha(30) : cs.surfaceContainerLowest),
         child: Center(child: Row(mainAxisSize: MainAxisSize.min, spacing: 3, children: List.generate(4, (i) {
           final alpha = switch (widget.mode) {
             0 => 1.0,

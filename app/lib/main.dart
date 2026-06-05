@@ -122,7 +122,7 @@ class _BLEGateState extends ConsumerState<BLEGate> with SingleTickerProviderStat
                   child: Icon(Icons.bluetooth_rounded, size: 40, color: cs.primary),
                 ),
                 const SizedBox(height: 24),
-                Text('RGB Controller', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                Text(AppLocalizations.of(context)!.appTitle, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
                 const SizedBox(height: 32),
                 SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary)),
               ]),
