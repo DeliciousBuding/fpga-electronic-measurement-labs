@@ -414,7 +414,7 @@ class _PresetColors extends StatelessWidget {
                 boxShadow: [BoxShadow(color: cl.withAlpha(active ? 100 : 60), blurRadius: active ? 16 : 10, spreadRadius: active ? 2 : 1, offset: const Offset(0, 3))],
                 border: Border.all(color: active ? cs.primary : cs.outlineVariant.withAlpha(60), width: active ? 2.5 : 1),
               ),
-              child: active ? const Icon(Icons.check_rounded, color: Colors.white, size: 22, shadows: [Shadow(color: Colors.black26, blurRadius: 4)]) : null,
+              child: active ? Icon(Icons.check_rounded, color: cl.computeLuminance() > 0.5 ? Colors.black54 : Colors.white, size: 22, shadows: const [Shadow(color: Colors.black26, blurRadius: 4)]) : null,
             ),
           );
         })),

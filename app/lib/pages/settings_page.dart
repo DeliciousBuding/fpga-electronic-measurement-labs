@@ -34,9 +34,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         const SizedBox(height: 8),
         Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
-            Row(children: [Icon(Icons.language_rounded, size: 20, color: cs.primary), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('语言', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)), const SizedBox(height: 1), Text(isZh ? '中文' : 'English', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant))])), SegmentedButton<String>(segments: const [ButtonSegment(value: 'zh', label: Text('中文')), ButtonSegment(value: 'en', label: Text('EN'))], selected: {isZh ? 'zh' : 'en'}, style: ButtonStyle(visualDensity: VisualDensity.compact, shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))), onSelectionChanged: (v) => ref.read(localeProvider.notifier).set(v.first == 'zh' ? const Locale('zh') : const Locale('en')))]),
+            Row(children: [Icon(Icons.language_rounded, size: 20, color: cs.primary), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('语言', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)), const SizedBox(height: 1), Text(isZh ? '中文' : 'English', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant))])), SegmentedButton<String>(segments: const [ButtonSegment(value: 'zh', label: Text('中文')), ButtonSegment(value: 'en', label: Text('EN'))], selected: {isZh ? 'zh' : 'en'}, style: ButtonStyle(visualDensity: VisualDensity.compact, shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))), onSelectionChanged: (v) => ref.read(localeProvider.notifier).set(v.first == 'zh' ? const Locale('zh') : const Locale('en')))]),
             const Divider(height: 24),
-            Row(children: [Icon(Icons.palette_rounded, size: 20, color: cs.primary), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('主题', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)), const SizedBox(height: 1), Text(theme.mode == ThemeMode.light ? '浅色' : theme.mode == ThemeMode.dark ? '深色' : '跟随系统', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant))])), SegmentedButton<ThemeMode>(segments: const [ButtonSegment(value: ThemeMode.system, label: Icon(Icons.phone_android_rounded, size: 18)), ButtonSegment(value: ThemeMode.light, label: Icon(Icons.light_mode_rounded, size: 18)), ButtonSegment(value: ThemeMode.dark, label: Icon(Icons.dark_mode_rounded, size: 18))], selected: {theme.mode}, style: ButtonStyle(visualDensity: VisualDensity.compact, shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))), onSelectionChanged: (v) => ref.read(themeProvider.notifier).setThemeMode(v.first))]),
+            Row(children: [Icon(Icons.palette_rounded, size: 20, color: cs.primary), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('主题', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)), const SizedBox(height: 1), Text(theme.mode == ThemeMode.light ? '浅色' : theme.mode == ThemeMode.dark ? '深色' : '跟随系统', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant))])), SegmentedButton<ThemeMode>(segments: const [ButtonSegment(value: ThemeMode.system, label: Icon(Icons.phone_android_rounded, size: 18)), ButtonSegment(value: ThemeMode.light, label: Icon(Icons.light_mode_rounded, size: 18)), ButtonSegment(value: ThemeMode.dark, label: Icon(Icons.dark_mode_rounded, size: 18))], selected: {theme.mode}, style: ButtonStyle(visualDensity: VisualDensity.compact, shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))), onSelectionChanged: (v) => ref.read(themeProvider.notifier).setThemeMode(v.first))]),
           ])),
         ),
         const SizedBox(height: 24),
@@ -54,13 +54,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               Container(width: 48, height: 48, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: cs.primary), child: const Icon(Icons.bluetooth_rounded, color: Colors.white, size: 26)),
               const SizedBox(width: 14),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('RGB 彩灯蓝牙控制器', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: cs.onSurface)),
+                Text('RGB 彩灯蓝牙控制器', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface)),
                 const SizedBox(height: 2),
-                Text('v0.1 · 湖南大学 · 工训中心', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+                Text('v0.1 · 湖南大学 · 工训中心', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
               ])),
             ]),
             const Divider(height: 28),
-            Row(children: [Icon(Icons.info_outline_rounded, size: 16, color: cs.onSurfaceVariant.withAlpha(150)), const SizedBox(width: 8), Expanded(child: Text('基于 CH9143 BLE 模块 + FPGA Cyclone IV E 控制 WS2812 RGB 彩灯', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)))]),
+            Row(children: [Icon(Icons.info_outline_rounded, size: 16, color: cs.onSurfaceVariant.withAlpha(150)), const SizedBox(width: 8), Expanded(child: Text('基于 CH9143 BLE 模块 + FPGA Cyclone IV E 控制 WS2812 RGB 彩灯', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant)))]),
           ])),
         ),
         const SizedBox(height: 24),
@@ -85,11 +85,11 @@ class _BleStatusCard extends StatelessWidget {
             Container(width: 40, height: 40, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: connected ? cs.primaryContainer : cs.surfaceContainerLowest), child: Icon(connected ? Icons.bluetooth_connected_rounded : Icons.bluetooth_disabled_rounded, color: connected ? cs.primary : cs.onSurfaceVariant, size: 22)),
             const SizedBox(width: 12),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(connected ? ble.deviceName : '未连接', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface)),
+              Text(connected ? ble.deviceName : '未连接', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface)),
               const SizedBox(height: 1),
-              Text(connected ? '已连接 · 长按蓝牙图标刷新状态' : '点击蓝牙图标扫描设备', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+              Text(connected ? '已连接 · 长按蓝牙图标刷新状态' : '点击蓝牙图标扫描设备', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
             ])),
-            Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: connected ? cs.primary.withAlpha(20) : cs.outlineVariant.withAlpha(20)), child: Text(connected ? '已连接' : '离线', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: connected ? cs.primary : cs.onSurfaceVariant))),
+            Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: connected ? cs.primary.withAlpha(20) : cs.outlineVariant.withAlpha(20)), child: Text(connected ? '已连接' : '离线', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600, color: connected ? cs.primary : cs.onSurfaceVariant))),
           ]),
         ])),
       ),
@@ -106,7 +106,6 @@ class _DebugLogCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final log = ble.debugLog;
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Column(children: [
@@ -116,47 +115,49 @@ class _DebugLogCard extends StatelessWidget {
           child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
             Icon(Icons.terminal_rounded, size: 20, color: cs.primary),
             const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('BLE 调试日志', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface)),
-              const SizedBox(height: 1),
-              Text('${log.length} 条记录', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
-            ])),
+            Expanded(child: ValueListenableBuilder<int>(
+              valueListenable: ble.debugLogVersion,
+              builder: (_, __, ___) {
+                final count = ble.debugLog.length;
+                return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('BLE 调试日志', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface)),
+                  const SizedBox(height: 1),
+                  Text('$count 条记录', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+                ]);
+              },
+            )),
             Icon(expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded, color: cs.onSurfaceVariant),
           ])),
         ),
-        if (expanded && log.isNotEmpty) Container(
-          constraints: const BoxConstraints(maxHeight: 280),
-          decoration: BoxDecoration(border: Border(top: BorderSide(color: cs.outlineVariant.withAlpha(40)))),
-          child: ListView.builder(
-            shrinkWrap: true,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            itemCount: log.length,
-            itemBuilder: (_, i) {
-              final idx = log.length - 1 - i; // newest first
-              final entry = log[idx];
-              final isTx = entry.startsWith('TX');
-              final isRx = entry.startsWith('RX');
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 3),
-                child: Text(
-                  entry,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontFamily: 'monospace',
-                    color: isTx
-                        ? const Color(0xFF3B82F6)
-                        : isRx
-                            ? const Color(0xFF22C55E)
-                            : cs.onSurfaceVariant,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        if (expanded && log.isEmpty) Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text('暂无日志', style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+        if (expanded) ValueListenableBuilder<int>(
+          valueListenable: ble.debugLogVersion,
+          builder: (_, __, ___) {
+            final log = ble.debugLog;
+            if (log.isEmpty) return Padding(padding: const EdgeInsets.all(16), child: Text('暂无日志', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant)));
+            return Container(
+              constraints: const BoxConstraints(maxHeight: 280),
+              decoration: BoxDecoration(border: Border(top: BorderSide(color: cs.outlineVariant.withAlpha(40)))),
+              child: ListView.builder(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                itemCount: log.length,
+                itemBuilder: (_, i) {
+                  final idx = log.length - 1 - i;
+                  final entry = log[idx];
+                  final isTx = entry.startsWith('TX');
+                  final isRx = entry.startsWith('RX');
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 3),
+                    child: Text(entry, style: TextStyle(
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                      color: isTx ? cs.primary : isRx ? cs.tertiary : cs.onSurfaceVariant,
+                    )),
+                  );
+                },
+              ),
+            );
+          },
         ),
       ]),
     );
@@ -167,5 +168,5 @@ class _SectionHeader extends StatelessWidget {
   final IconData icon; final String title; final ColorScheme cs;
   const _SectionHeader({required this.icon, required this.title, required this.cs});
   @override
-  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(left: 4), child: Row(children: [Icon(icon, size: 18, color: cs.primary), const SizedBox(width: 8), Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: cs.onSurface))]));
+  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(left: 4), child: Row(children: [Icon(icon, size: 18, color: cs.primary), const SizedBox(width: 8), Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: cs.onSurface))]));
 }

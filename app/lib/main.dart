@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/theme_provider.dart';
+import 'providers/locale_provider.dart';
 import 'providers/ble_provider.dart';
 import 'pages/main_shell.dart';
 
@@ -23,6 +24,7 @@ class RgbControllerApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeState = ref.watch(themeProvider);
+    final locale = ref.watch(localeProvider);
     return DynamicColorBuilder(
       builder: (lightDynamic, darkDynamic) {
         ColorScheme lightScheme, darkScheme;
@@ -36,6 +38,8 @@ class RgbControllerApp extends ConsumerWidget {
         return MaterialApp(
           title: 'RGB Controller',
           debugShowCheckedModeBanner: false,
+          locale: locale,
+          supportedLocales: const [Locale('zh'), Locale('en')],
           themeMode: themeState.mode,
           theme: ThemeData(
             colorScheme: lightScheme,

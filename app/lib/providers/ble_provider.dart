@@ -65,6 +65,7 @@ class BLEService {
   // circular debug log
   final _debugLog = <String>[];
   static const _maxDebugLog = 50;
+  final _debugLogNotifier = ValueNotifier<int>(0); // bump on change
 
   String? _lastConnectedDeviceId;
 
@@ -73,6 +74,7 @@ class BLEService {
   ValueListenable<bool> get isConnected => _isConnected;
   Stream<BleEvent> get events => _eventController.stream;
   List<String> get debugLog => List.unmodifiable(_debugLog);
+  ValueListenable<int> get debugLogVersion => _debugLogNotifier;
   String? get lastConnectedDeviceId => _lastConnectedDeviceId;
 
   String get deviceName =>
@@ -233,6 +235,7 @@ class BLEService {
   // --- send ---
 
   final _throttleTimers = <String, Timer>{};
+  final _throttlePending = <String, Uint8List>{};
 
   Future<void> _send(Uint8List data) async {
     if (_txChar == null) {
@@ -248,13 +251,20 @@ class BLEService {
     }
   }
 
-  /// Throttled send: first call sends immediately, subsequent calls within
-  /// [ms] are coalesced — only the latest payload is sent after the gap.
+  /// Throttle: first call sends immediately; subsequent calls within [ms]
+  /// are coalesced — only the latest payload is sent when the window closes.
   void _throttledSend(String key, Uint8List data, {int ms = 80}) {
-    _throttleTimers[key]?.cancel();
-    _send(data);
+    _throttlePending[key] = data;
+    if (_throttleTimers.containsKey(key)) return; // within window, data stored
+    _flushThrottle(key, ms);
+  }
+
+  void _flushThrottle(String key, int ms) {
+    final d = _throttlePending.remove(key);
+    if (d != null) _send(d);
     _throttleTimers[key] = Timer(Duration(milliseconds: ms), () {
       _throttleTimers.remove(key);
+      if (_throttlePending.containsKey(key)) _flushThrottle(key, ms);
     });
   }
 
@@ -299,6 +309,7 @@ class BLEService {
   void _addDebug(String msg) {
     _debugLog.add(msg);
     if (_debugLog.length > _maxDebugLog) _debugLog.removeAt(0);
+    _debugLogNotifier.value++;
   }
 
   static String _hex(Uint8List data) =>
@@ -312,6 +323,7 @@ class BLEService {
     _statusTimeout?.cancel();
     for (final t in _throttleTimers.values) { t.cancel(); }
     _eventController.close();
+    _debugLogNotifier.dispose();
     _isConnected.dispose();
   }
 }
