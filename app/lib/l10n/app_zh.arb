@@ -92,6 +92,12 @@
   "sceneOcean": "深海",
   "sceneWarmSun": "暖阳",
   "sceneLightning": "电光",
+  "sceneLoaded": "已加载「{name}」",
+  "@sceneLoaded": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
 
   "scanTitle": "扫描蓝牙设备",
   "scanHint": "请确保 CH9143 BLE 模块已上电",

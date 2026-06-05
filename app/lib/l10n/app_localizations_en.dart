@@ -171,6 +171,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sceneLightning => 'Lightning';
 
   @override
+  String sceneLoaded(String name) {
+    return 'Loaded「$name」';
+  }
+
+  @override
   String get scanTitle => 'Scan BLE Devices';
 
   @override

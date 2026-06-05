@@ -171,6 +171,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sceneLightning => '电光';
 
   @override
+  String sceneLoaded(String name) {
+    return '已加载「$name」';
+  }
+
+  @override
   String get scanTitle => '扫描蓝牙设备';
 
   @override
