@@ -24,6 +24,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final ble = ref.read(bleServiceProvider);
     final t = AppLocalizations.of(context)!;
     final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
+    final bottomPad = MediaQuery.of(context).padding.bottom + kBottomNavigationBarHeight + 20;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -31,8 +32,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         title: Text(t.navSettings), centerTitle: true, elevation: 0, scrolledUnderElevation: 1,
         actions: [Padding(padding: const EdgeInsets.only(right: 4), child: ValueListenableBuilder(valueListenable: ble.isConnected, builder: (context, connected, _) => IconButton(icon: connected ? Badge(isLabelVisible: true, smallSize: 8, child: Icon(Icons.bluetooth_connected_rounded, color: cs.primary)) : Icon(Icons.bluetooth_rounded, color: cs.onSurfaceVariant.withAlpha(150)), tooltip: connected ? t.bleTooltipConnected(ble.deviceName) : t.bleTooltipDisconnected, onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())))))],
       ),
-      body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, 20), children: [
-        _SectionHeader(icon: Icons.brush_rounded, title: t.settingsAppearance, cs: cs),
+      body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, bottomPad), children: [
+        _SectionHeader(icon: Icons.brush_rounded, title: t.settingsAppearance),
         const SizedBox(height: 8),
         Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
@@ -42,13 +43,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ])),
         ),
         const SizedBox(height: 24),
-        _SectionHeader(icon: Icons.bluetooth_rounded, title: t.settingsBluetooth, cs: cs),
+        _SectionHeader(icon: Icons.bluetooth_rounded, title: t.settingsBluetooth),
         const SizedBox(height: 8),
-        _BleStatusCard(ble: ble, cs: cs, t: t),
+        _BleStatusCard(ble: ble),
         const SizedBox(height: 12),
-        _DebugLogCard(ble: ble, cs: cs, t: t, expanded: _debugExpanded, onToggle: () => setState(() => _debugExpanded = !_debugExpanded)),
+        _DebugLogCard(ble: ble, expanded: _debugExpanded, onToggle: () => setState(() => _debugExpanded = !_debugExpanded)),
         const SizedBox(height: 24),
-        _SectionHeader(icon: Icons.info_rounded, title: t.settingsAbout, cs: cs),
+        _SectionHeader(icon: Icons.info_rounded, title: t.settingsAbout),
         const SizedBox(height: 8),
         Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
@@ -73,12 +74,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
 class _BleStatusCard extends StatelessWidget {
   final BLEService ble;
-  final ColorScheme cs;
-  final AppLocalizations t;
-  const _BleStatusCard({required this.ble, required this.cs, required this.t});
+  const _BleStatusCard({required this.ble});
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final t = AppLocalizations.of(context)!;
     return ValueListenableBuilder<bool>(
       valueListenable: ble.isConnected,
       builder: (context, connected, _) => Card(
@@ -102,14 +103,14 @@ class _BleStatusCard extends StatelessWidget {
 
 class _DebugLogCard extends StatelessWidget {
   final BLEService ble;
-  final ColorScheme cs;
-  final AppLocalizations t;
   final bool expanded;
   final VoidCallback onToggle;
-  const _DebugLogCard({required this.ble, required this.cs, required this.t, required this.expanded, required this.onToggle});
+  const _DebugLogCard({required this.ble, required this.expanded, required this.onToggle});
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final t = AppLocalizations.of(context)!;
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Column(children: [
@@ -169,8 +170,11 @@ class _DebugLogCard extends StatelessWidget {
 }
 
 class _SectionHeader extends StatelessWidget {
-  final IconData icon; final String title; final ColorScheme cs;
-  const _SectionHeader({required this.icon, required this.title, required this.cs});
+  final IconData icon; final String title;
+  const _SectionHeader({required this.icon, required this.title});
   @override
-  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(left: 4), child: Row(children: [Icon(icon, size: 18, color: cs.primary), const SizedBox(width: 8), Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: cs.onSurface))]));
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(padding: const EdgeInsets.only(left: 4), child: Row(children: [Icon(icon, size: 18, color: cs.primary), const SizedBox(width: 8), Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: cs.onSurface))]));
+  }
 }

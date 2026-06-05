@@ -13,17 +13,15 @@ class Cmd {
   static const ackErr = 0xEE;
 }
 
-/// 灯效模式
 enum LightMode {
-  static_(0, '静态'),
-  breath(1, '呼吸'),
-  flow(2, '流水'),
-  gradient(3, '渐变'),
-  music(4, '音乐');
+  static_(0),
+  breath(1),
+  flow(2),
+  gradient(3),
+  music(4);
 
   final int code;
-  final String label;
-  const LightMode(this.code, this.label);
+  const LightMode(this.code);
 
   static LightMode fromCode(int code) {
     for (final m in values) {
@@ -31,19 +29,4 @@ enum LightMode {
     }
     return static_;
   }
-}
-
-/// 情景模式数据
-class SceneData {
-  final int r, g, b;
-  final int brightness;
-  final int mode;
-
-  const SceneData({
-    this.r = 255,
-    this.g = 0,
-    this.b = 0,
-    this.brightness = 200,
-    this.mode = 0,
-  });
 }

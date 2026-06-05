@@ -92,7 +92,7 @@ class BLEService {
 
   Future<void> init() async {
     if (!await FlutterBluePlus.isSupported) {
-      throw Exception('BLE 不支持');
+      throw Exception('BLE not supported');
     }
     await FlutterBluePlus.adapterState
         .where((s) => s == BluetoothAdapterState.on)
