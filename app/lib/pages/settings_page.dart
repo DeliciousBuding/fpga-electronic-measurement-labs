@@ -5,10 +5,17 @@ import '../providers/locale_provider.dart';
 import '../providers/ble_provider.dart';
 import 'scanner_page.dart';
 
-class SettingsPage extends ConsumerWidget {
+class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends ConsumerState<SettingsPage> {
+  bool _debugExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final theme = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
@@ -33,6 +40,12 @@ class SettingsPage extends ConsumerWidget {
           ])),
         ),
         const SizedBox(height: 24),
+        _SectionHeader(icon: Icons.bluetooth_rounded, title: '蓝牙', cs: cs),
+        const SizedBox(height: 8),
+        _BleStatusCard(ble: ble, cs: cs),
+        const SizedBox(height: 12),
+        _DebugLogCard(ble: ble, cs: cs, expanded: _debugExpanded, onToggle: () => setState(() => _debugExpanded = !_debugExpanded)),
+        const SizedBox(height: 24),
         _SectionHeader(icon: Icons.info_rounded, title: '关于', cs: cs),
         const SizedBox(height: 8),
         Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -51,6 +64,100 @@ class SettingsPage extends ConsumerWidget {
           ])),
         ),
         const SizedBox(height: 24),
+      ]),
+    );
+  }
+}
+
+class _BleStatusCard extends StatelessWidget {
+  final BLEService ble;
+  final ColorScheme cs;
+  const _BleStatusCard({required this.ble, required this.cs});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: ble.isConnected,
+      builder: (_, connected, __) => Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
+          Row(children: [
+            Container(width: 40, height: 40, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: connected ? cs.primaryContainer : cs.surfaceContainerLowest), child: Icon(connected ? Icons.bluetooth_connected_rounded : Icons.bluetooth_disabled_rounded, color: connected ? cs.primary : cs.onSurfaceVariant, size: 22)),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(connected ? ble.deviceName : '未连接', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface)),
+              const SizedBox(height: 1),
+              Text(connected ? '已连接 · 长按蓝牙图标刷新状态' : '点击蓝牙图标扫描设备', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+            ])),
+            Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: connected ? cs.primary.withAlpha(20) : cs.outlineVariant.withAlpha(20)), child: Text(connected ? '已连接' : '离线', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: connected ? cs.primary : cs.onSurfaceVariant))),
+          ]),
+        ])),
+      ),
+    );
+  }
+}
+
+class _DebugLogCard extends StatelessWidget {
+  final BLEService ble;
+  final ColorScheme cs;
+  final bool expanded;
+  final VoidCallback onToggle;
+  const _DebugLogCard({required this.ble, required this.cs, required this.expanded, required this.onToggle});
+
+  @override
+  Widget build(BuildContext context) {
+    final log = ble.debugLog;
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(children: [
+        InkWell(
+          borderRadius: expanded ? const BorderRadius.vertical(top: Radius.circular(12)) : BorderRadius.circular(12),
+          onTap: onToggle,
+          child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
+            Icon(Icons.terminal_rounded, size: 20, color: cs.primary),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('BLE 调试日志', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface)),
+              const SizedBox(height: 1),
+              Text('${log.length} 条记录', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+            ])),
+            Icon(expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded, color: cs.onSurfaceVariant),
+          ])),
+        ),
+        if (expanded && log.isNotEmpty) Container(
+          constraints: const BoxConstraints(maxHeight: 280),
+          decoration: BoxDecoration(border: Border(top: BorderSide(color: cs.outlineVariant.withAlpha(40)))),
+          child: ListView.builder(
+            shrinkWrap: true,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            itemCount: log.length,
+            itemBuilder: (_, i) {
+              final idx = log.length - 1 - i; // newest first
+              final entry = log[idx];
+              final isTx = entry.startsWith('TX');
+              final isRx = entry.startsWith('RX');
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 3),
+                child: Text(
+                  entry,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontFamily: 'monospace',
+                    color: isTx
+                        ? const Color(0xFF3B82F6)
+                        : isRx
+                            ? const Color(0xFF22C55E)
+                            : cs.onSurfaceVariant,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        if (expanded && log.isEmpty) Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text('暂无日志', style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+        ),
       ]),
     );
   }
