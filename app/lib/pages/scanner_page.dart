@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/ble_provider.dart';
 
 class ScannerPage extends ConsumerStatefulWidget {
@@ -48,7 +49,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
     if (!mounted) return;
     setState(() => _connectingId = null);
     if (ok) { Navigator.pop(context, true); }
-    else { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('连接失败，请重试'), behavior: SnackBarBehavior.floating)); }
+    else { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.scanConnectFail), behavior: SnackBarBehavior.floating)); }
   }
 
   String _name(ScanResult r) => r.advertisementData.advName.isNotEmpty ? r.advertisementData.advName : r.device.remoteId.str;
@@ -57,11 +58,12 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final t = AppLocalizations.of(context)!;
     final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
-    if (_bleOff) return _buildBleOff(context, cs, topPad);
+    if (_bleOff) return _buildBleOff(context, cs, t, topPad);
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(title: const Text('扫描蓝牙设备'), centerTitle: true, elevation: 0),
+      appBar: AppBar(title: Text(t.scanTitle), centerTitle: true, elevation: 0),
       body: Column(children: [
         SizedBox(height: topPad),
         SizedBox(height: 140, child: Stack(alignment: Alignment.center, children: [
@@ -70,14 +72,14 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
           AnimatedBuilder(animation: _pulse, builder: (_, child) => Transform.scale(scale: 1.0 + _pulse.value * 0.06, child: child), child: Container(width: 64, height: 64, decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: cs.primaryContainer, boxShadow: [BoxShadow(color: cs.primary.withAlpha(40), blurRadius: 20, spreadRadius: 4)]), child: Icon(Icons.bluetooth_searching_rounded, size: 32, color: cs.primary))),
         ])),
         const SizedBox(height: 8),
-        Text('扫描蓝牙设备', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+        Text(t.scanTitle, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        Text('请确保 CH9143 BLE 模块已上电', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
+        Text(t.scanHint, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
         const SizedBox(height: 20),
         Expanded(child: _devices.isEmpty
             ? Center(child: AnimatedSwitcher(duration: const Duration(milliseconds: 300), child: _scanning
-                ? Column(mainAxisSize: MainAxisSize.min, children: [SizedBox(width: 32, height: 32, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary)), const SizedBox(height: 18), Text('正在扫描...', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant))])
-                : Column(mainAxisSize: MainAxisSize.min, children: [Container(width: 72, height: 72, decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: cs.surfaceContainerLow), child: Icon(Icons.bluetooth_searching_rounded, size: 36, color: cs.onSurfaceVariant.withAlpha(100))), const SizedBox(height: 16), Text('未发现设备', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500, color: cs.onSurfaceVariant)), const SizedBox(height: 6), Text('点击下方按钮重新扫描', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant.withAlpha(150)))])))
+                ? Column(mainAxisSize: MainAxisSize.min, children: [SizedBox(width: 32, height: 32, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary)), const SizedBox(height: 18), Text(t.scanScanning, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant))])
+                : Column(mainAxisSize: MainAxisSize.min, children: [Container(width: 72, height: 72, decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: cs.surfaceContainerLow), child: Icon(Icons.bluetooth_searching_rounded, size: 36, color: cs.onSurfaceVariant.withAlpha(100))), const SizedBox(height: 16), Text(t.scanNoDevice, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500, color: cs.onSurfaceVariant)), const SizedBox(height: 6), Text(t.scanRetryHint, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant.withAlpha(150)))])))
             : ListView.separated(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8), itemCount: _devices.length, separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (_, i) {
                   final d = _devices[i]; final loading = _connectingId == d.device.remoteId.str;
@@ -93,20 +95,20 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
                       ]))),
                   );
                 })),
-        SafeArea(child: Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 16), child: SizedBox(width: double.infinity, height: 52, child: FilledButton.icon(onPressed: _scanning || _bleOff ? null : _startScan, icon: const Icon(Icons.refresh_rounded, size: 20), label: Text(_scanning ? '扫描中...' : '重新扫描'), style: FilledButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))))),
+        SafeArea(child: Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 16), child: SizedBox(width: double.infinity, height: 52, child: FilledButton.icon(onPressed: _scanning || _bleOff ? null : _startScan, icon: const Icon(Icons.refresh_rounded, size: 20), label: Text(_scanning ? t.scanScanningBtn : t.scanRescan), style: FilledButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))))),
       ]),
     );
   }
 
-  Widget _buildBleOff(BuildContext context, ColorScheme cs, double topPad) => Scaffold(
+  Widget _buildBleOff(BuildContext context, ColorScheme cs, AppLocalizations t, double topPad) => Scaffold(
     extendBodyBehindAppBar: true,
-    appBar: AppBar(title: const Text('扫描蓝牙设备'), centerTitle: true, elevation: 0),
+    appBar: AppBar(title: Text(t.scanTitle), centerTitle: true, elevation: 0),
     body: Column(children: [
       SizedBox(height: topPad + 40), const Spacer(),
       Container(width: 96, height: 96, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: cs.surfaceContainerLow), child: Icon(Icons.bluetooth_disabled_rounded, size: 48, color: cs.onSurfaceVariant.withAlpha(100))),
-      const SizedBox(height: 20), Text('蓝牙已关闭', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)), const SizedBox(height: 6), Text('请先在系统设置中开启蓝牙', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant.withAlpha(150))),
+      const SizedBox(height: 20), Text(t.bleOffTitle, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)), const SizedBox(height: 6), Text(t.bleOffHint, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant.withAlpha(150))),
       const SizedBox(height: 28),
-      OutlinedButton.icon(onPressed: () => FlutterBluePlus.turnOn(), icon: const Icon(Icons.bluetooth_rounded, size: 20), label: const Text('开启蓝牙'), style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12))),
+      OutlinedButton.icon(onPressed: () => FlutterBluePlus.turnOn(), icon: const Icon(Icons.bluetooth_rounded, size: 20), label: Text(t.bleTurnOn), style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12))),
       const Spacer(flex: 2),
     ]),
   );
