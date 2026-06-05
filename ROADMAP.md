@@ -1,6 +1,6 @@
 # RGB 彩灯蓝牙控制器 — 综合实验 Monorepo
 
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 ## 项目定位
 
@@ -77,11 +77,12 @@ CMD   Name            Args              FPGA Response
 | M2 | UART 命令集成 (cmd_parser + ACK + 顶层连线) | **done** |
 | M3 | ModelSim 全链路仿真 (18/18 PASS) | **done** |
 | M4 | Flutter APP 全功能 | **done** |
+| M4.1 | APP BLE 响应解析 + 状态同步 + debug 日志 | **done** |
 | M5 | FFT 音乐联动 (选做) | todo |
 | M6 | 多灯同步控制 (选做) | todo |
 | M7 | Quartus 编译 + 上板 | **done** |
 | M8 | SignalTap 波形捕获 | todo |
-| M9 | BLE 真机联调 + 端到端验证 | **待手动——手机蓝牙已关闭 7 小时** |
+| M9 | BLE 真机联调 + 端到端验证 | **待上板——APP 已就绪** |
 
 ## FPGA 编译与验证总结
 
