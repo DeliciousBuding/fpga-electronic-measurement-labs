@@ -160,7 +160,7 @@ class _BleAction extends ConsumerWidget {
 
 int _findPresetIndex(int r, int g, int b) {
   for (int i = 0; i < presetColors.length; i++) {
-    final c = Color(presetColors[i].$1);
+    final c = Color(presetColors[i]);
     if ((c.r * 255).round() == r && (c.g * 255).round() == g && (c.b * 255).round() == b) return i;
   }
   return -1;
@@ -178,11 +178,12 @@ class _ColorTab extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final color = Color.fromARGB(255, s.r, s.g, s.b);
     final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
+    final bottomPad = MediaQuery.of(context).padding.bottom + kBottomNavigationBarHeight + 20;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(title: Text(t.appTitle), centerTitle: true, elevation: 0, scrolledUnderElevation: 1, surfaceTintColor: Colors.transparent, actions: const [_BleAction()]),
-      body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, 20), children: [
+      body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, bottomPad), children: [
         const SizedBox(height: 4),
         const _BleBanner(),
         const SizedBox(height: 16),
@@ -423,7 +424,7 @@ class _PresetColors extends StatelessWidget {
         Row(children: [Icon(Icons.palette_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text(AppLocalizations.of(context)!.presetColors, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface))]),
         const SizedBox(height: 16),
         Wrap(spacing: 14, runSpacing: 14, children: List.generate(presetColors.length, (i) {
-          final e = presetColors[i]; final cl = Color(e.$1);
+          final cl = Color(presetColors[i]);
           final pr = (cl.r * 255).round(); final pg = (cl.g * 255).round(); final pb = (cl.b * 255).round();
           final active = i == sel;
           return GestureDetector(onTap: () => onPick(pr, pg, pb),
@@ -509,6 +510,7 @@ class _EffectTab extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final t = AppLocalizations.of(context)!;
     final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
+    final bottomPad = MediaQuery.of(context).padding.bottom + kBottomNavigationBarHeight + 20;
 
     final items = [
       (0, t.modeStatic, Icons.light_mode_rounded, t.descStatic, Color(0xFFFFD93D), false),
@@ -521,7 +523,7 @@ class _EffectTab extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(title: Text(t.navEffect), centerTitle: true, elevation: 0, scrolledUnderElevation: 1, actions: const [_BleAction()]),
-      body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, 20), children: [
+      body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, bottomPad), children: [
         const SizedBox(height: 4), const _BleBanner(), const SizedBox(height: 12),
         ...items.map((m) {
           final sel = s.mode == m.$1;
@@ -630,6 +632,7 @@ class _SceneTab extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final t = AppLocalizations.of(context)!;
     final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
+    final bottomPad = MediaQuery.of(context).padding.bottom + kBottomNavigationBarHeight + 20;
 
     final scenes = [
       (Icons.wb_twilight_rounded, Color(0xFFEF4444), t.sceneSunset, [Color(0xFFFF6B35), Color(0xFFFFD700)]),
@@ -645,7 +648,7 @@ class _SceneTab extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(title: Text(t.sceneTitle), centerTitle: true, elevation: 0, scrolledUnderElevation: 1, actions: const [_BleAction()]),
-      body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, 20), children: [
+      body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, bottomPad), children: [
         const SizedBox(height: 4), const _BleBanner(), const SizedBox(height: 12),
         Row(children: [Icon(Icons.info_outline_rounded, size: 16, color: cs.onSurfaceVariant), const SizedBox(width: 6), Text(t.sceneHint, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant))]),
         const SizedBox(height: 16),
