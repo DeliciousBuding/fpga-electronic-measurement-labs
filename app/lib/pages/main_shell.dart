@@ -322,17 +322,36 @@ class _ModeBadge extends StatelessWidget {
 class _RgbDisplay extends StatelessWidget {
   final int r, g, b; final ColorScheme cs;
   const _RgbDisplay({required this.r, required this.g, required this.b, required this.cs});
+
+  String get _hex => '#${r.toRadixString(16).padLeft(2, '0')}${g.toRadixString(16).padLeft(2, '0')}${b.toRadixString(16).padLeft(2, '0')}'.toUpperCase();
+
   @override
-  Widget build(BuildContext context) => Center(
-    child: Container(padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(40), color: cs.surfaceContainerLowest, boxShadow: [BoxShadow(color: cs.shadow.withAlpha(20), blurRadius: 8, offset: const Offset(0, 2))]),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        _Chip(label: 'R', value: r, color: const Color(0xFFEF4444)),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Container(width: 4, height: 4, decoration: BoxDecoration(shape: BoxShape.circle, color: cs.onSurfaceVariant.withAlpha(80)))),
-        _Chip(label: 'G', value: g, color: const Color(0xFF22C55E)),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Container(width: 4, height: 4, decoration: BoxDecoration(shape: BoxShape.circle, color: cs.onSurfaceVariant.withAlpha(80)))),
-        _Chip(label: 'B', value: b, color: const Color(0xFF3B82F6)),
-      ]),
+  Widget build(BuildContext context) => Tooltip(
+    message: '点击复制 $_hex',
+    child: GestureDetector(
+      onTap: () {
+        Clipboard.setData(ClipboardData(text: _hex));
+        HapticFeedback.lightImpact();
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('已复制 $_hex'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 1),
+        ));
+      },
+      child: Center(
+        child: Container(padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(40), color: cs.surfaceContainerLowest, boxShadow: [BoxShadow(color: cs.shadow.withAlpha(20), blurRadius: 8, offset: const Offset(0, 2))]),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            _Chip(label: 'R', value: r, color: const Color(0xFFEF4444)),
+            Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Container(width: 4, height: 4, decoration: BoxDecoration(shape: BoxShape.circle, color: cs.onSurfaceVariant.withAlpha(80)))),
+            _Chip(label: 'G', value: g, color: const Color(0xFF22C55E)),
+            Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Container(width: 4, height: 4, decoration: BoxDecoration(shape: BoxShape.circle, color: cs.onSurfaceVariant.withAlpha(80)))),
+            _Chip(label: 'B', value: b, color: const Color(0xFF3B82F6)),
+            Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Container(width: 4, height: 4, decoration: BoxDecoration(shape: BoxShape.circle, color: cs.onSurfaceVariant.withAlpha(80)))),
+            Text(_hex, style: Theme.of(context).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600, fontFamily: 'monospace', color: cs.onSurfaceVariant)),
+          ]),
+        ),
+      ),
     ),
   );
 }
@@ -459,6 +478,18 @@ class _QuickActions extends StatelessWidget {
           Expanded(child: _actionChip(context, Icons.light_mode_rounded, '全白', cs.tertiary, () => onColor(255, 255, 255))),
           const SizedBox(width: 10),
           Expanded(child: _actionChip(context, Icons.casino_rounded, '随机', cs.primary, () => onColor(_rng.nextInt(256), _rng.nextInt(256), _rng.nextInt(256)))),
+        ]),
+        const SizedBox(height: 10),
+        Row(children: [
+          Expanded(child: _actionChip(context, Icons.local_fire_department_rounded, '暖光', const Color(0xFFFFB347), () => onColor(255, 179, 71))),
+          const SizedBox(width: 10),
+          Expanded(child: _actionChip(context, Icons.ac_unit_rounded, '冷光', const Color(0xFFB3E5FC), () => onColor(179, 229, 252))),
+          const SizedBox(width: 10),
+          Expanded(child: _actionChip(context, Icons.gradient_rounded, '彩虹', const Color(0xFFE879F9), () {
+            final hue = (_rng.nextDouble() * 360);
+            final c = HSVColor.fromAHSV(1.0, hue, 1.0, 1.0).toColor();
+            onColor((c.r * 255).round(), (c.g * 255).round(), (c.b * 255).round());
+          })),
         ]),
       ])),
     );
