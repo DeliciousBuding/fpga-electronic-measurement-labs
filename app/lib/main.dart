@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'l10n/app_localizations.dart';
 import 'providers/theme_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/ble_provider.dart';
@@ -39,7 +40,8 @@ class RgbControllerApp extends ConsumerWidget {
           title: 'RGB Controller',
           debugShowCheckedModeBanner: false,
           locale: locale,
-          supportedLocales: const [Locale('zh'), Locale('en')],
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
           themeMode: themeState.mode,
           theme: ThemeData(
             colorScheme: lightScheme,
@@ -120,7 +122,7 @@ class _BLEGateState extends ConsumerState<BLEGate> with SingleTickerProviderStat
                   child: Icon(Icons.bluetooth_rounded, size: 40, color: cs.primary),
                 ),
                 const SizedBox(height: 24),
-                Text('RGB Controller', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: cs.onSurface)),
+                Text('RGB Controller', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
                 const SizedBox(height: 32),
                 SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary)),
               ]),

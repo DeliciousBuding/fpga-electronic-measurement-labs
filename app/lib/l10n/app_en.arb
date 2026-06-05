@@ -1,0 +1,158 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "RGB Controller",
+
+  "navLed": "LED",
+  "navEffect": "Effects",
+  "navScene": "Scenes",
+  "navSettings": "Settings",
+
+  "ledStrip": "LED Strip",
+  "brightness": "Brightness",
+  "brightnessPercent": "{pct}%",
+  "@brightnessPercent": {
+    "placeholders": {
+      "pct": { "type": "int" }
+    }
+  },
+
+  "modeStatic": "Static",
+  "modeBreath": "Breath",
+  "modeFlow": "Flow",
+  "modeGradient": "Gradient",
+  "modeMusic": "Music",
+
+  "descStatic": "Solid color always on",
+  "descBreath": "Sine envelope brightness cycle",
+  "descFlow": "Light moves position by position",
+  "descGradient": "HSV hue smooth transition",
+  "descMusic": "FFT linked (not implemented)",
+  "wip": "WIP",
+
+  "flowSpeed": "Flow Speed",
+  "gradientSpeed": "Gradient Speed",
+  "breathPeriod": "Breath Period",
+
+  "presetColors": "Preset Colors",
+  "quickActions": "Quick Actions",
+  "actionPowerOff": "Off",
+  "actionFullWhite": "White",
+  "actionRandom": "Random",
+  "actionWarmLight": "Warm",
+  "actionCoolLight": "Cool",
+  "actionRainbow": "Rainbow",
+
+  "copyHexTooltip": "Tap to copy {hex}",
+  "@copyHexTooltip": {
+    "placeholders": {
+      "hex": { "type": "String" }
+    }
+  },
+  "hexCopied": "Copied {hex}",
+  "@hexCopied": {
+    "placeholders": {
+      "hex": { "type": "String" }
+    }
+  },
+
+  "bleNotConnected": "No BLE device connected",
+  "bleConnect": "Connect",
+  "bleTooltipConnected": "Connected to {name} — long press to refresh",
+  "@bleTooltipConnected": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "bleTooltipDisconnected": "Not connected — tap to scan",
+  "bleRefreshing": "Refreshing FPGA status…",
+  "bleCmdFailed": "Command failed (0xEE)",
+  "bleConnected": "Connected to {name}",
+  "@bleConnected": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "sceneTitle": "Scene Modes",
+  "sceneHint": "Tap to load · Long press to save",
+  "sceneSaved": "Saved「{name}」",
+  "@sceneSaved": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "sceneSunset": "Sunset",
+  "sceneAurora": "Aurora",
+  "sceneNeon": "Neon",
+  "sceneFlame": "Flame",
+  "sceneForest": "Forest",
+  "sceneOcean": "Ocean",
+  "sceneWarmSun": "Warm Sun",
+  "sceneLightning": "Lightning",
+
+  "scanTitle": "Scan BLE Devices",
+  "scanHint": "Make sure CH9143 BLE module is powered on",
+  "scanScanning": "Scanning…",
+  "scanScanningBtn": "Scanning…",
+  "scanRescan": "Rescan",
+  "scanNoDevice": "No devices found",
+  "scanRetryHint": "Tap the button below to scan again",
+  "scanConnectFail": "Connection failed, please retry",
+
+  "bleOffTitle": "Bluetooth is off",
+  "bleOffHint": "Please turn on Bluetooth in system settings",
+  "bleTurnOn": "Turn on Bluetooth",
+
+  "settingsAppearance": "Appearance",
+  "settingsLanguage": "Language",
+  "settingsLangZh": "Chinese",
+  "settingsTheme": "Theme",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsThemeSystem": "System",
+  "settingsBluetooth": "Bluetooth",
+  "settingsAbout": "About",
+
+  "bleStatusConnected": "Connected",
+  "bleStatusOffline": "Offline",
+  "bleStatusDetailConnected": "Connected · Long press BT icon to refresh",
+  "bleStatusDetailDisconnected": "Tap BT icon to scan devices",
+
+  "aboutAppName": "RGB LED Bluetooth Controller",
+  "aboutVersion": "v0.1 · Hunan Univ · Engineering Training Center",
+  "aboutDesc": "CH9143 BLE + FPGA Cyclone IV E controlling WS2812 RGB LED strip",
+
+  "debugLogTitle": "BLE Debug Log",
+  "debugLogCount": "{count} entries",
+  "@debugLogCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "debugLogEmpty": "No logs yet",
+
+  "bleNotSupported": "BLE not supported",
+
+  "colorRed": "Red",
+  "colorOrange": "Orange",
+  "colorYellow": "Yellow",
+  "colorGreen": "Green",
+  "colorCyan": "Cyan",
+  "colorBlue": "Blue",
+  "colorPurple": "Purple",
+  "colorPink": "Pink",
+  "colorWhite": "White",
+  "colorWarmRed": "Warm Red",
+  "colorWarmYellow": "Warm Yellow",
+  "colorWarmGreen": "Warm Green",
+  "colorCoral": "Coral",
+  "colorMint": "Mint",
+  "colorLavender": "Lavender",
+  "colorAmber": "Amber",
+  "colorTangerine": "Tangerine",
+  "colorEmerald": "Emerald",
+  "colorSkyBlue": "Sky Blue",
+  "colorMagenta": "Magenta"
+}

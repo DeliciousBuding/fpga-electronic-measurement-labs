@@ -1,0 +1,159 @@
+{
+  "@@locale": "zh",
+
+  "appTitle": "RGB Controller",
+  "@appTitle": { "description": "App title" },
+
+  "navLed": "LED",
+  "navEffect": "灯效",
+  "navScene": "情景",
+  "navSettings": "设置",
+
+  "ledStrip": "LED 灯带",
+  "brightness": "亮度",
+  "brightnessPercent": "{pct}%",
+  "@brightnessPercent": {
+    "placeholders": {
+      "pct": { "type": "int" }
+    }
+  },
+
+  "modeStatic": "静态",
+  "modeBreath": "呼吸",
+  "modeFlow": "流水",
+  "modeGradient": "渐变",
+  "modeMusic": "音乐",
+
+  "descStatic": "固定颜色常亮",
+  "descBreath": "正弦包络周期明暗",
+  "descFlow": "灯光逐位移动",
+  "descGradient": "HSV 色相平滑过渡",
+  "descMusic": "FFT 联动 (未实现)",
+  "wip": "WIP",
+
+  "flowSpeed": "流水速度",
+  "gradientSpeed": "渐变速度",
+  "breathPeriod": "呼吸周期",
+
+  "presetColors": "预设颜色",
+  "quickActions": "快捷操作",
+  "actionPowerOff": "关灯",
+  "actionFullWhite": "全白",
+  "actionRandom": "随机",
+  "actionWarmLight": "暖光",
+  "actionCoolLight": "冷光",
+  "actionRainbow": "彩虹",
+
+  "copyHexTooltip": "点击复制 {hex}",
+  "@copyHexTooltip": {
+    "placeholders": {
+      "hex": { "type": "String" }
+    }
+  },
+  "hexCopied": "已复制 {hex}",
+  "@hexCopied": {
+    "placeholders": {
+      "hex": { "type": "String" }
+    }
+  },
+
+  "bleNotConnected": "未连接蓝牙设备",
+  "bleConnect": "连接",
+  "bleTooltipConnected": "已连接 {name} - 长按刷新状态",
+  "@bleTooltipConnected": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "bleTooltipDisconnected": "未连接 - 点击扫描",
+  "bleRefreshing": "正在刷新 FPGA 状态...",
+  "bleCmdFailed": "命令执行失败 (0xEE)",
+  "bleConnected": "已连接 {name}",
+  "@bleConnected": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "sceneTitle": "情景模式",
+  "sceneHint": "轻点加载 · 长按保存",
+  "sceneSaved": "已保存「{name}」",
+  "@sceneSaved": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "sceneSunset": "日暮",
+  "sceneAurora": "极光",
+  "sceneNeon": "霓虹",
+  "sceneFlame": "烈焰",
+  "sceneForest": "森林",
+  "sceneOcean": "深海",
+  "sceneWarmSun": "暖阳",
+  "sceneLightning": "电光",
+
+  "scanTitle": "扫描蓝牙设备",
+  "scanHint": "请确保 CH9143 BLE 模块已上电",
+  "scanScanning": "正在扫描...",
+  "scanScanningBtn": "扫描中...",
+  "scanRescan": "重新扫描",
+  "scanNoDevice": "未发现设备",
+  "scanRetryHint": "点击下方按钮重新扫描",
+  "scanConnectFail": "连接失败，请重试",
+
+  "bleOffTitle": "蓝牙已关闭",
+  "bleOffHint": "请先在系统设置中开启蓝牙",
+  "bleTurnOn": "开启蓝牙",
+
+  "settingsAppearance": "外观",
+  "settingsLanguage": "语言",
+  "settingsLangZh": "中文",
+  "settingsTheme": "主题",
+  "settingsThemeLight": "浅色",
+  "settingsThemeDark": "深色",
+  "settingsThemeSystem": "跟随系统",
+  "settingsBluetooth": "蓝牙",
+  "settingsAbout": "关于",
+
+  "bleStatusConnected": "已连接",
+  "bleStatusOffline": "离线",
+  "bleStatusDetailConnected": "已连接 · 长按蓝牙图标刷新状态",
+  "bleStatusDetailDisconnected": "点击蓝牙图标扫描设备",
+
+  "aboutAppName": "RGB 彩灯蓝牙控制器",
+  "aboutVersion": "v0.1 · 湖南大学 · 工训中心",
+  "aboutDesc": "基于 CH9143 BLE 模块 + FPGA Cyclone IV E 控制 WS2812 RGB 彩灯",
+
+  "debugLogTitle": "BLE 调试日志",
+  "debugLogCount": "{count} 条记录",
+  "@debugLogCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "debugLogEmpty": "暂无日志",
+
+  "bleNotSupported": "BLE 不支持",
+
+  "colorRed": "红",
+  "colorOrange": "橙",
+  "colorYellow": "黄",
+  "colorGreen": "绿",
+  "colorCyan": "青",
+  "colorBlue": "蓝",
+  "colorPurple": "紫",
+  "colorPink": "粉",
+  "colorWhite": "白",
+  "colorWarmRed": "暖红",
+  "colorWarmYellow": "暖黄",
+  "colorWarmGreen": "暖绿",
+  "colorCoral": "珊瑚",
+  "colorMint": "薄荷",
+  "colorLavender": "薰衣草",
+  "colorAmber": "琥珀",
+  "colorTangerine": "橘",
+  "colorEmerald": "翠",
+  "colorSkyBlue": "天蓝",
+  "colorMagenta": "洋红"
+}
