@@ -76,8 +76,8 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
         const SizedBox(height: 20),
         Expanded(child: _devices.isEmpty
             ? Center(child: AnimatedSwitcher(duration: const Duration(milliseconds: 300), child: _scanning
-                ? Column(mainAxisSize: MainAxisSize.min, children: [SizedBox(width: 32, height: 32, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary)), const SizedBox(height: 18), Text('正在扫描...', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14))])
-                : Column(mainAxisSize: MainAxisSize.min, children: [Container(width: 72, height: 72, decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: cs.surfaceContainerLow), child: Icon(Icons.bluetooth_searching_rounded, size: 36, color: cs.onSurfaceVariant.withAlpha(100))), const SizedBox(height: 16), Text('未发现设备', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: cs.onSurfaceVariant)), const SizedBox(height: 6), Text('点击下方按钮重新扫描', style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant.withAlpha(150)))])))
+                ? Column(mainAxisSize: MainAxisSize.min, children: [SizedBox(width: 32, height: 32, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary)), const SizedBox(height: 18), Text('正在扫描...', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant))])
+                : Column(mainAxisSize: MainAxisSize.min, children: [Container(width: 72, height: 72, decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: cs.surfaceContainerLow), child: Icon(Icons.bluetooth_searching_rounded, size: 36, color: cs.onSurfaceVariant.withAlpha(100))), const SizedBox(height: 16), Text('未发现设备', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500, color: cs.onSurfaceVariant)), const SizedBox(height: 6), Text('点击下方按钮重新扫描', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant.withAlpha(150)))])))
             : ListView.separated(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8), itemCount: _devices.length, separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (_, i) {
                   final d = _devices[i]; final loading = _connectingId == d.device.remoteId.str;
@@ -86,8 +86,8 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
                       child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
                         Container(width: 44, height: 44, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: cs.primaryContainer), child: loading ? Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary))) : Icon(Icons.devices_rounded, color: cs.primary, size: 22)),
                         const SizedBox(width: 14),
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_name(d), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)), const SizedBox(height: 2), Text(d.device.remoteId.str, style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant))])),
-                        Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: _rssi(d.rssi).withAlpha(20)), child: Text('${d.rssi} dBm', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _rssi(d.rssi)))),
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_name(d), style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)), const SizedBox(height: 2), Text(d.device.remoteId.str, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant))])),
+                        Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: _rssi(d.rssi).withAlpha(20)), child: Text('${d.rssi} dBm', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600, color: _rssi(d.rssi)))),
                         const SizedBox(width: 4),
                         Icon(Icons.chevron_right_rounded, color: cs.onSurfaceVariant.withAlpha(120)),
                       ]))),
@@ -104,7 +104,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
     body: Column(children: [
       SizedBox(height: topPad + 40), const Spacer(),
       Container(width: 96, height: 96, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: cs.surfaceContainerLow), child: Icon(Icons.bluetooth_disabled_rounded, size: 48, color: cs.onSurfaceVariant.withAlpha(100))),
-      const SizedBox(height: 20), Text('蓝牙已关闭', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)), const SizedBox(height: 6), Text('请先在系统设置中开启蓝牙', style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant.withAlpha(150))),
+      const SizedBox(height: 20), Text('蓝牙已关闭', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)), const SizedBox(height: 6), Text('请先在系统设置中开启蓝牙', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant.withAlpha(150))),
       const SizedBox(height: 28),
       OutlinedButton.icon(onPressed: () => FlutterBluePlus.turnOn(), icon: const Icon(Icons.bluetooth_rounded, size: 20), label: const Text('开启蓝牙'), style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12))),
       const Spacer(flex: 2),
