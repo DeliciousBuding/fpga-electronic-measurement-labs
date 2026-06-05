@@ -3,17 +3,11 @@ import 'theme_provider.dart';
 
 class AppPreferences {
   final bool hideBarOnScroll;
-  final List<String> bottomNavIds;
 
-  const AppPreferences({
-    this.hideBarOnScroll = true,
-    this.bottomNavIds = const ['color', 'effects', 'scenes', 'settings'],
-  });
+  const AppPreferences({this.hideBarOnScroll = true});
 
-  AppPreferences copyWith({bool? hideBarOnScroll, List<String>? bottomNavIds}) =>
-      AppPreferences(
-          hideBarOnScroll: hideBarOnScroll ?? this.hideBarOnScroll,
-          bottomNavIds: bottomNavIds ?? this.bottomNavIds);
+  AppPreferences copyWith({bool? hideBarOnScroll}) =>
+      AppPreferences(hideBarOnScroll: hideBarOnScroll ?? this.hideBarOnScroll);
 }
 
 class PreferencesNotifier extends Notifier<AppPreferences> {

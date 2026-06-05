@@ -174,8 +174,8 @@ class _ColorTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(deviceProvider);
     final ble = ref.read(bleServiceProvider);
-    final cs = Theme.of(context).colorScheme;
     final t = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
     final color = Color.fromARGB(255, s.r, s.g, s.b);
     final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
 
@@ -186,18 +186,17 @@ class _ColorTab extends ConsumerWidget {
         const SizedBox(height: 4),
         const _BleBanner(),
         const SizedBox(height: 16),
-        // hero: large color orb + LED strip
-        _ColorHero(color: color, mode: s.mode, brightness: s.brightness, cs: cs, t: t),
+        _ColorHero(color: color, mode: s.mode, brightness: s.brightness),
         const SizedBox(height: 20),
-        _SliderCard(label: t.brightness, icon: Icons.brightness_7_rounded, value: s.brightness.toDouble(), min: 1, max: 255, color: cs.primary,
+        _SliderCard(label: t.brightness, icon: Icons.brightness_6_rounded, value: s.brightness.toDouble(), min: 0, max: 255, color: cs.primary,
             onChanged: (v) { final iv = v.round(); ref.read(deviceProvider.notifier).setBrightness(iv); ble.setBrightnessThrottled(iv); }),
         const SizedBox(height: 12),
-        _ColorSlidersCard(r: s.r, g: s.g, b: s.b, cs: cs,
+        _ColorSlidersCard(r: s.r, g: s.g, b: s.b,
             onR: (v) { ref.read(deviceProvider.notifier).setColor(v, s.g, s.b); ble.setColorThrottled(v, s.g, s.b); },
             onG: (v) { ref.read(deviceProvider.notifier).setColor(s.r, v, s.b); ble.setColorThrottled(s.r, v, s.b); },
             onB: (v) { ref.read(deviceProvider.notifier).setColor(s.r, s.g, v); ble.setColorThrottled(s.r, s.g, v); }),
         const SizedBox(height: 12),
-        _PresetColors(cs: cs, r: s.r, g: s.g, b: s.b, onPick: (r, g, b) { HapticFeedback.selectionClick(); ref.read(deviceProvider.notifier).setColor(r, g, b); ble.setColor(r, g, b); }),
+        _PresetColors(r: s.r, g: s.g, b: s.b, onPick: (r, g, b) { HapticFeedback.selectionClick(); ref.read(deviceProvider.notifier).setColor(r, g, b); ble.setColor(r, g, b); }),
         const SizedBox(height: 12),
         _QuickActions(onColor: (r, g, b) { HapticFeedback.lightImpact(); ref.read(deviceProvider.notifier).setColor(r, g, b); ble.setColor(r, g, b); }),
         const SizedBox(height: 24),
@@ -206,10 +205,9 @@ class _ColorTab extends ConsumerWidget {
   }
 }
 
-/// Hero section: large color orb with LED strip dots below.
 class _ColorHero extends StatefulWidget {
-  final Color color; final int mode; final int brightness; final ColorScheme cs; final AppLocalizations t;
-  const _ColorHero({required this.color, required this.mode, required this.brightness, required this.cs, required this.t});
+  final Color color; final int mode; final int brightness;
+  const _ColorHero({required this.color, required this.mode, required this.brightness});
   @override
   State<_ColorHero> createState() => _ColorHeroState();
 }
@@ -253,7 +251,8 @@ class _ColorHeroState extends State<_ColorHero> with SingleTickerProviderStateMi
 
   @override
   Widget build(BuildContext context) {
-    final cs = widget.cs;
+    final cs = Theme.of(context).colorScheme;
+    final t = AppLocalizations.of(context)!;
     final base = widget.color;
     final bf = widget.brightness / 255.0;
 
@@ -301,15 +300,15 @@ class _ColorHeroState extends State<_ColorHero> with SingleTickerProviderStateMi
             const SizedBox(height: 12),
             // mode badges
             SizedBox(height: 30, child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              _ModeBadge(active: widget.mode == 0, label: widget.t.modeStatic, color: cs.primary),
+              _ModeBadge(active: widget.mode == 0, label: t.modeStatic, color: cs.primary),
               const SizedBox(width: 6),
-              _ModeBadge(active: widget.mode == 1, label: widget.t.modeBreath, color: const Color(0xFF06B6D4)),
+              _ModeBadge(active: widget.mode == 1, label: t.modeBreath, color: const Color(0xFF06B6D4)),
               const SizedBox(width: 6),
-              _ModeBadge(active: widget.mode == 2, label: widget.t.modeFlow, color: const Color(0xFF3B82F6)),
+              _ModeBadge(active: widget.mode == 2, label: t.modeFlow, color: const Color(0xFF3B82F6)),
               const SizedBox(width: 6),
-              _ModeBadge(active: widget.mode == 3, label: widget.t.modeGradient, color: const Color(0xFF8B5CF6)),
+              _ModeBadge(active: widget.mode == 3, label: t.modeGradient, color: const Color(0xFF8B5CF6)),
               const SizedBox(width: 6),
-              _ModeBadge(active: widget.mode == 4, label: widget.t.modeMusic, color: const Color(0xFFEC4899)),
+              _ModeBadge(active: widget.mode == 4, label: t.modeMusic, color: const Color(0xFFEC4899)),
             ])),
           ])),
         );
@@ -386,8 +385,8 @@ class _GlowThumb extends RoundSliderThumbShape {
 }
 
 class _ColorSlidersCard extends StatelessWidget {
-  final int r, g, b; final ColorScheme cs; final ValueChanged<int> onR, onG, onB;
-  const _ColorSlidersCard({required this.r, required this.g, required this.b, required this.cs, required this.onR, required this.onG, required this.onB});
+  final int r, g, b; final ValueChanged<int> onR, onG, onB;
+  const _ColorSlidersCard({required this.r, required this.g, required this.b, required this.onR, required this.onG, required this.onB});
   @override
   Widget build(BuildContext context) => Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     child: Padding(padding: const EdgeInsets.fromLTRB(16, 16, 12, 12), child: Column(children: [
@@ -413,10 +412,11 @@ class _SliverRow extends StatelessWidget {
 }
 
 class _PresetColors extends StatelessWidget {
-  final ColorScheme cs; final int r, g, b; final void Function(int r, int g, int b) onPick;
-  const _PresetColors({required this.cs, required this.r, required this.g, required this.b, required this.onPick});
+  final int r, g, b; final void Function(int r, int g, int b) onPick;
+  const _PresetColors({required this.r, required this.g, required this.b, required this.onPick});
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final sel = _findPresetIndex(r, g, b);
     return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
