@@ -109,7 +109,7 @@ class _BleBanner extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     return ValueListenableBuilder(
       valueListenable: ble.isConnected,
-      builder: (_, connected, __) => AnimatedSize(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut,
+      builder: (context, connected, _) => AnimatedSize(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut,
         child: connected ? const SizedBox.shrink() : Card(
           margin: EdgeInsets.zero,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -135,7 +135,7 @@ class _BleAction extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     return ValueListenableBuilder(
       valueListenable: ble.isConnected,
-      builder: (_, connected, __) => Tooltip(
+      builder: (context, connected, _) => Tooltip(
         message: connected ? t.bleTooltipConnected(ble.deviceName) : t.bleTooltipDisconnected,
         child: IconButton(
           icon: connected
@@ -259,7 +259,7 @@ class _ColorHeroState extends State<_ColorHero> with SingleTickerProviderStateMi
 
     return AnimatedBuilder(
       animation: _anim,
-      builder: (_, __) {
+      builder: (context, child) {
         // orb glow intensity for breath/gradient
         final glowScale = widget.mode == 1
             ? (0.5 + 0.5 * math.sin(_anim.value * 2 * math.pi))
@@ -327,7 +327,7 @@ class _LedDot extends StatelessWidget {
     final lit = color.computeLuminance() > 0.06;
     return Expanded(
       child: AspectRatio(aspectRatio: 1,
-        child: AnimatedContainer(duration: const Duration(milliseconds: 350), curve: Curves.easeOutCubic,
+        child: Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: lit ? color : cs.surfaceContainerLowest,
@@ -565,7 +565,23 @@ class _EffectPreviewState extends State<_EffectPreview> with SingleTickerProvide
   late AnimationController _ctrl;
 
   @override
-  void initState() { super.initState(); _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(); }
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 2));
+    if (widget.active) _ctrl.repeat();
+  }
+
+  @override
+  void didUpdateWidget(covariant _EffectPreview old) {
+    super.didUpdateWidget(old);
+    if (widget.active && !_ctrl.isAnimating) {
+      _ctrl.repeat();
+    } else if (!widget.active && _ctrl.isAnimating) {
+      _ctrl.stop();
+      _ctrl.value = 0;
+    }
+  }
+
   @override
   void dispose() { _ctrl.dispose(); super.dispose(); }
 
@@ -574,7 +590,7 @@ class _EffectPreviewState extends State<_EffectPreview> with SingleTickerProvide
     final c = widget.disabled ? widget.cs.onSurfaceVariant.withAlpha(60) : widget.color;
     return AnimatedBuilder(
       animation: _ctrl,
-      builder: (_, __) => Container(
+      builder: (context, child) => Container(
         width: 52, height: 52,
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: widget.active ? c.withAlpha(30) : widget.cs.surfaceContainerLowest),
         child: Center(child: Row(mainAxisSize: MainAxisSize.min, spacing: 3, children: List.generate(4, (i) {

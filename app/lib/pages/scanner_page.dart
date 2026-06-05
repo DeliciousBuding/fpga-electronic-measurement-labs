@@ -80,7 +80,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
             ? Center(child: AnimatedSwitcher(duration: const Duration(milliseconds: 300), child: _scanning
                 ? Column(mainAxisSize: MainAxisSize.min, children: [SizedBox(width: 32, height: 32, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary)), const SizedBox(height: 18), Text(t.scanScanning, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant))])
                 : Column(mainAxisSize: MainAxisSize.min, children: [Container(width: 72, height: 72, decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: cs.surfaceContainerLow), child: Icon(Icons.bluetooth_searching_rounded, size: 36, color: cs.onSurfaceVariant.withAlpha(100))), const SizedBox(height: 16), Text(t.scanNoDevice, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500, color: cs.onSurfaceVariant)), const SizedBox(height: 6), Text(t.scanRetryHint, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant.withAlpha(150)))])))
-            : ListView.separated(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8), itemCount: _devices.length, separatorBuilder: (_, _) => const SizedBox(height: 10),
+            : ListView.separated(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8), itemCount: _devices.length, separatorBuilder: (context, _) => const SizedBox(height: 10),
                 itemBuilder: (_, i) {
                   final d = _devices[i]; final loading = _connectingId == d.device.remoteId.str;
                   return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

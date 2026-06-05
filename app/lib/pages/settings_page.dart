@@ -29,7 +29,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(t.navSettings), centerTitle: true, elevation: 0, scrolledUnderElevation: 1,
-        actions: [Padding(padding: const EdgeInsets.only(right: 4), child: ValueListenableBuilder(valueListenable: ble.isConnected, builder: (_, connected, __) => IconButton(icon: connected ? Badge(isLabelVisible: true, smallSize: 8, child: Icon(Icons.bluetooth_connected_rounded, color: cs.primary)) : Icon(Icons.bluetooth_rounded, color: cs.onSurfaceVariant.withAlpha(150)), tooltip: connected ? t.bleTooltipConnected(ble.deviceName) : t.bleTooltipDisconnected, onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())))))],
+        actions: [Padding(padding: const EdgeInsets.only(right: 4), child: ValueListenableBuilder(valueListenable: ble.isConnected, builder: (context, connected, _) => IconButton(icon: connected ? Badge(isLabelVisible: true, smallSize: 8, child: Icon(Icons.bluetooth_connected_rounded, color: cs.primary)) : Icon(Icons.bluetooth_rounded, color: cs.onSurfaceVariant.withAlpha(150)), tooltip: connected ? t.bleTooltipConnected(ble.deviceName) : t.bleTooltipDisconnected, onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())))))],
       ),
       body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, 20), children: [
         _SectionHeader(icon: Icons.brush_rounded, title: t.settingsAppearance, cs: cs),
@@ -81,7 +81,7 @@ class _BleStatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
       valueListenable: ble.isConnected,
-      builder: (_, connected, __) => Card(
+      builder: (context, connected, _) => Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
           Row(children: [
@@ -121,7 +121,7 @@ class _DebugLogCard extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(child: ValueListenableBuilder<int>(
               valueListenable: ble.debugLogVersion,
-              builder: (_, __, ___) {
+              builder: (context, value, _) {
                 final count = ble.debugLog.length;
                 return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(t.debugLogTitle, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface)),
@@ -135,7 +135,7 @@ class _DebugLogCard extends StatelessWidget {
         ),
         if (expanded) ValueListenableBuilder<int>(
           valueListenable: ble.debugLogVersion,
-          builder: (_, __, ___) {
+          builder: (context, value, _) {
             final log = ble.debugLog;
             if (log.isEmpty) return Padding(padding: const EdgeInsets.all(16), child: Text(t.debugLogEmpty, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant)));
             return Container(
