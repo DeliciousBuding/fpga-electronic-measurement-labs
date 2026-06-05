@@ -68,6 +68,8 @@ class BLEService {
   final _debugLogNotifier = ValueNotifier<int>(0); // bump on change
 
   String? _lastConnectedDeviceId;
+  Timer? _reconnectTimer;
+  bool _manualDisconnect = false;
 
   // --- public accessors ---
 
@@ -117,6 +119,8 @@ class BLEService {
 
   Future<bool> connect(BluetoothDevice device) async {
     try {
+      _manualDisconnect = false;
+      _cancelReconnect();
       await device.connect(timeout: const Duration(seconds: 10));
       _device = device;
       _lastConnectedDeviceId = device.remoteId.str;
@@ -168,6 +172,7 @@ class BLEService {
           _resetParser();
           _rxSub?.cancel();
           _connSub?.cancel();
+          _scheduleReconnect();
         }
       });
 
@@ -186,6 +191,8 @@ class BLEService {
   }
 
   Future<void> disconnect() async {
+    _manualDisconnect = true;
+    _cancelReconnect();
     _lastConnectedDeviceId = _device?.remoteId.str;
     await _device?.disconnect();
   }
@@ -315,9 +322,35 @@ class BLEService {
   static String _hex(Uint8List data) =>
       data.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ');
 
+  // --- auto reconnect ---
+
+  void _scheduleReconnect() {
+    if (_manualDisconnect || _lastConnectedDeviceId == null) return;
+    _reconnectTimer?.cancel();
+    _addDebug('Auto-reconnect in 3s...');
+    _reconnectTimer = Timer(const Duration(seconds: 3), () async {
+      _reconnectTimer = null;
+      if (_manualDisconnect || _isConnected.value) return;
+      _addDebug('Reconnecting to $_lastConnectedDeviceId...');
+      try {
+        final device = BluetoothDevice.fromId(_lastConnectedDeviceId!);
+        await connect(device);
+      } catch (e) {
+        _addDebug('Reconnect failed: $e');
+        _scheduleReconnect(); // retry
+      }
+    });
+  }
+
+  void _cancelReconnect() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
+  }
+
   // --- dispose ---
 
   void dispose() {
+    _cancelReconnect();
     _rxSub?.cancel();
     _connSub?.cancel();
     _statusTimeout?.cancel();

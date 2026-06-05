@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/ble_provider.dart';
 import '../providers/device_provider.dart';
@@ -110,8 +111,8 @@ class _BleBanner extends ConsumerWidget {
           child: Padding(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), child: Row(children: [
             Icon(Icons.bluetooth_disabled_rounded, size: 20, color: cs.onErrorContainer),
             const SizedBox(width: 10),
-            Expanded(child: Text('未连接蓝牙设备', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onErrorContainer))),
-            TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())), style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12), visualDensity: VisualDensity.compact), child: Text('连接', style: TextStyle(fontWeight: FontWeight.w700, color: cs.onErrorContainer))),
+            Expanded(child: Text('未连接蓝牙设备', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onErrorContainer))),
+            TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())), style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12), visualDensity: VisualDensity.compact), child: Text('连接', style: Theme.of(context).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700, color: cs.onErrorContainer))),
           ])),
         ),
       ),
@@ -187,7 +188,9 @@ class _ColorTab extends ConsumerWidget {
             onG: (v) { ref.read(deviceProvider.notifier).setColor(s.r, v, s.b); ble.setColorThrottled(s.r, v, s.b); },
             onB: (v) { ref.read(deviceProvider.notifier).setColor(s.r, s.g, v); ble.setColorThrottled(s.r, s.g, v); }),
         const SizedBox(height: 12),
-        _PresetColors(cs: cs, r: s.r, g: s.g, b: s.b, onPick: (r, g, b) { ref.read(deviceProvider.notifier).setColor(r, g, b); ble.setColor(r, g, b); }),
+        _PresetColors(cs: cs, r: s.r, g: s.g, b: s.b, onPick: (r, g, b) { HapticFeedback.selectionClick(); ref.read(deviceProvider.notifier).setColor(r, g, b); ble.setColor(r, g, b); }),
+        const SizedBox(height: 12),
+        _QuickActions(onColor: (r, g, b) { HapticFeedback.lightImpact(); ref.read(deviceProvider.notifier).setColor(r, g, b); ble.setColor(r, g, b); }),
         const SizedBox(height: 24),
       ]),
     );
@@ -254,7 +257,7 @@ class _LedStripState extends State<_LedStrip> with SingleTickerProviderStateMixi
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: EdgeInsets.zero,
         child: Padding(padding: const EdgeInsets.fromLTRB(16, 20, 16, 16), child: Column(children: [
-          Row(children: [Icon(Icons.light_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text('LED 灯带', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface)), const Spacer(), Badge(backgroundColor: baseColor, label: Text('${widget.brightness}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11, color: Colors.white))), const SizedBox(width: 8), Text('亮度', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant))]),
+          Row(children: [Icon(Icons.light_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text('LED 灯带', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface)), const Spacer(), Badge(backgroundColor: baseColor, label: Text('${widget.brightness}', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: Colors.white))), const SizedBox(width: 8), Text('亮度', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant))]),
           const SizedBox(height: 14),
           Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14), decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: cs.surfaceContainerLowest, border: Border.all(color: cs.outlineVariant.withAlpha(40))), child: Column(children: [
             Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: _ledColor(i, baseColor), cs: cs))),
@@ -398,7 +401,7 @@ class _SliverRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Row(children: [
-      SizedBox(width: 36, child: Row(children: [Icon(icon, size: 14, color: color), const SizedBox(width: 6), Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: color))])),
+      SizedBox(width: 36, child: Row(children: [Icon(icon, size: 14, color: color), const SizedBox(width: 6), Text(label, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: color))])),
       Expanded(child: SliderTheme(data: SliderThemeData(trackHeight: 5, thumbShape: RoundSliderThumbShape(enabledThumbRadius: 7), activeTrackColor: color, inactiveTrackColor: color.withAlpha(25), thumbColor: color, overlayColor: color.withAlpha(20), overlayShape: const RoundSliderOverlayShape(overlayRadius: 14)), child: Slider(value: value.toDouble(), min: 0, max: 255, onChanged: (x) => onChanged(x.round())))),
       SizedBox(width: 36, child: Text('$value', textAlign: TextAlign.end, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500, color: cs.onSurfaceVariant))),
     ]);
@@ -435,6 +438,49 @@ class _PresetColors extends StatelessWidget {
   }
 }
 
+class _QuickActions extends StatelessWidget {
+  final void Function(int r, int g, int b) onColor;
+  const _QuickActions({required this.onColor});
+
+  static final _rng = math.Random();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [Icon(Icons.flash_on_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text('快捷操作', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface))]),
+        const SizedBox(height: 14),
+        Row(children: [
+          Expanded(child: _actionChip(context, Icons.power_settings_new_rounded, '关灯', cs.error, () => onColor(0, 0, 0))),
+          const SizedBox(width: 10),
+          Expanded(child: _actionChip(context, Icons.light_mode_rounded, '全白', cs.tertiary, () => onColor(255, 255, 255))),
+          const SizedBox(width: 10),
+          Expanded(child: _actionChip(context, Icons.casino_rounded, '随机', cs.primary, () => onColor(_rng.nextInt(256), _rng.nextInt(256), _rng.nextInt(256)))),
+        ]),
+      ])),
+    );
+  }
+
+  Widget _actionChip(BuildContext context, IconData icon, String label, Color color, VoidCallback onTap) {
+    return Material(
+      color: color.withAlpha(15),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 6),
+          Flexible(child: Text(label, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600, color: color))),
+        ])),
+      ),
+    );
+  }
+}
+
 class _EffectTab extends ConsumerWidget {
   const _EffectTab();
   @override
@@ -464,7 +510,7 @@ class _EffectTab extends ConsumerWidget {
             child: Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: sel ? BorderSide(color: m.$5.withAlpha(120), width: 1.5) : BorderSide(color: cs.outlineVariant.withAlpha(60))),
               color: disabled ? cs.surfaceContainerLowest : (sel ? cs.primaryContainer : cs.surfaceContainerLow),
               child: InkWell(borderRadius: BorderRadius.circular(12),
-                onTap: disabled ? null : () { ref.read(deviceProvider.notifier).setMode(m.$1); ble.setMode(m.$1); },
+                onTap: disabled ? null : () { HapticFeedback.selectionClick(); ref.read(deviceProvider.notifier).setMode(m.$1); ble.setMode(m.$1); },
                 child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
                   AnimatedContainer(duration: const Duration(milliseconds: 300), width: 52, height: 52, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: sel ? m.$5.withAlpha(30) : cs.surfaceContainerLowest), child: Icon(m.$3, color: disabled ? cs.onSurfaceVariant.withAlpha(60) : (sel ? m.$5 : cs.onSurfaceVariant), size: 28)),
                   const SizedBox(width: 16),
@@ -480,7 +526,7 @@ class _EffectTab extends ConsumerWidget {
             ),
           );
         }),
-        if (s.mode == 2) ...[ const SizedBox(height: 4), _SliderCard(label: '流水速度', icon: Icons.speed_rounded, value: s.flowSpeed.toDouble(), min: 1, max: 255, color: const Color(0xFF3B82F6), onChanged: (v) { final iv = v.round(); ref.read(deviceProvider.notifier).setFlowSpeed(iv); ble.setFlowSpeedThrottled(iv); }) ],
+        if (s.mode == 2 || s.mode == 3) ...[ const SizedBox(height: 4), _SliderCard(label: s.mode == 2 ? '流水速度' : '渐变速度', icon: Icons.speed_rounded, value: s.flowSpeed.toDouble(), min: 1, max: 255, color: s.mode == 2 ? const Color(0xFF3B82F6) : const Color(0xFF8B5CF6), onChanged: (v) { final iv = v.round(); ref.read(deviceProvider.notifier).setFlowSpeed(iv); ble.setFlowSpeedThrottled(iv); }) ],
         if (s.mode == 1) ...[ const SizedBox(height: 4), _SliderCard(label: '呼吸周期', icon: Icons.timelapse_rounded, value: s.breathPeriod.toDouble(), min: 1, max: 255, color: const Color(0xFF06B6D4), onChanged: (v) { final iv = v.round(); ref.read(deviceProvider.notifier).setBreathPeriod(iv); ble.setBreathPeriodThrottled(iv); }) ],
         const SizedBox(height: 24),
       ]),
@@ -498,14 +544,14 @@ class _SceneTab extends ConsumerWidget {
     final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
 
     final scenes = [
-      (Icons.wb_twilight_rounded, Color(0xFFEF4444), '日暮'),
-      (Icons.auto_awesome_rounded, Color(0xFF06B6D4), '极光'),
-      (Icons.nightlife_rounded, Color(0xFF8B5CF6), '霓虹'),
-      (Icons.local_fire_department_rounded, Color(0xFFF97316), '烈焰'),
-      (Icons.forest_rounded, Color(0xFF22C55E), '森林'),
-      (Icons.water_drop_rounded, Color(0xFF38BDF8), '深海'),
-      (Icons.wb_sunny_rounded, Color(0xFFFBBF24), '暖阳'),
-      (Icons.bolt_rounded, Color(0xFFE879F9), '电光'),
+      (Icons.wb_twilight_rounded, Color(0xFFEF4444), '日暮', [Color(0xFFFF6B35), Color(0xFFFFD700)]),
+      (Icons.auto_awesome_rounded, Color(0xFF06B6D4), '极光', [Color(0xFF00FF87), Color(0xFF60EFFF)]),
+      (Icons.nightlife_rounded, Color(0xFF8B5CF6), '霓虹', [Color(0xFFFF00FF), Color(0xFF00FFFF)]),
+      (Icons.local_fire_department_rounded, Color(0xFFF97316), '烈焰', [Color(0xFFFF0000), Color(0xFFFF8C00)]),
+      (Icons.forest_rounded, Color(0xFF22C55E), '森林', [Color(0xFF228B22), Color(0xFF7CFC00)]),
+      (Icons.water_drop_rounded, Color(0xFF38BDF8), '深海', [Color(0xFF001F5C), Color(0xFF00B4D8)]),
+      (Icons.wb_sunny_rounded, Color(0xFFFBBF24), '暖阳', [Color(0xFFFFE4B5), Color(0xFFFFD700)]),
+      (Icons.bolt_rounded, Color(0xFFE879F9), '电光', [Color(0xFFE040FB), Color(0xFF00E5FF)]),
     ];
 
     return Scaffold(
@@ -516,25 +562,26 @@ class _SceneTab extends ConsumerWidget {
         Row(children: [Icon(Icons.info_outline_rounded, size: 16, color: cs.onSurfaceVariant), const SizedBox(width: 6), Text('轻点加载 · 长按保存', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant))]),
         const SizedBox(height: 16),
         GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.82),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.15),
           itemCount: 8,
           itemBuilder: (_, i) {
             final scene = scenes[i];
             final accent = scene.$2;
+            final colors = scene.$4;
             final saved = s.sceneSaved.length > i && s.sceneSaved[i];
-            return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: saved ? BorderSide(color: accent.withAlpha(120), width: 1.5) : BorderSide(color: cs.outlineVariant.withAlpha(60))),
+            return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: saved ? BorderSide(color: accent.withAlpha(120), width: 1.5) : BorderSide(color: cs.outlineVariant.withAlpha(60))),
               color: saved ? accent.withAlpha(15) : cs.surfaceContainerLow,
-              child: InkWell(borderRadius: BorderRadius.circular(12),
-                onTap: () { ble.loadScene(i); Future.delayed(const Duration(milliseconds: 300), () => ble.queryStatus()); },
-                onLongPress: () { ble.saveScene(i); ref.read(deviceProvider.notifier).markSceneSaved(i); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已保存「${scene.$3}」'), duration: const Duration(seconds: 1), behavior: SnackBarBehavior.floating)); },
-                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              child: InkWell(borderRadius: BorderRadius.circular(14),
+                onTap: () { HapticFeedback.selectionClick(); ble.loadScene(i); Future.delayed(const Duration(milliseconds: 300), () => ble.queryStatus()); },
+                onLongPress: () { HapticFeedback.mediumImpact(); ble.saveScene(i); ref.read(deviceProvider.notifier).markSceneSaved(i); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已保存「${scene.$3}」'), duration: const Duration(seconds: 1), behavior: SnackBarBehavior.floating)); },
+                child: Padding(padding: const EdgeInsets.all(12), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Stack(clipBehavior: Clip.none, children: [
-                    Container(width: 44, height: 44, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: accent.withAlpha(saved ? 40 : 25)), child: Icon(scene.$1, color: accent, size: 24)),
-                    if (saved) Positioned(right: -2, top: -2, child: Container(width: 16, height: 16, decoration: BoxDecoration(shape: BoxShape.circle, color: accent), child: const Icon(Icons.check_rounded, color: Colors.white, size: 12))),
+                    Container(width: 48, height: 48, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight)), child: Icon(scene.$1, color: Colors.white.withAlpha(220), size: 24)),
+                    if (saved) Positioned(right: -3, top: -3, child: Container(width: 18, height: 18, decoration: BoxDecoration(shape: BoxShape.circle, color: accent, border: Border.all(color: Colors.white, width: 1.5)), child: const Icon(Icons.check_rounded, color: Colors.white, size: 11))),
                   ]),
                   const SizedBox(height: 8),
-                  Text(scene.$3, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
-                ]),
+                  Text(scene.$3, style: Theme.of(context).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface)),
+                ])),
               ),
             );
           },
