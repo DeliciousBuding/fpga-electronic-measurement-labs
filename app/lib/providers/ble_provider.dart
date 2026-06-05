@@ -70,6 +70,8 @@ class BLEService {
   String? _lastConnectedDeviceId;
   Timer? _reconnectTimer;
   bool _manualDisconnect = false;
+  int _reconnectAttempts = 0;
+  static const _maxReconnectAttempts = 3;
 
   // --- public accessors ---
 
@@ -121,6 +123,7 @@ class BLEService {
     try {
       _manualDisconnect = false;
       _cancelReconnect();
+      _reconnectAttempts = 0;
       await device.connect(timeout: const Duration(seconds: 10));
       _device = device;
       _lastConnectedDeviceId = device.remoteId.str;
@@ -326,18 +329,24 @@ class BLEService {
 
   void _scheduleReconnect() {
     if (_manualDisconnect || _lastConnectedDeviceId == null) return;
+    if (_reconnectAttempts >= _maxReconnectAttempts) {
+      _addDebug('Max reconnect attempts reached ($_reconnectAttempts)');
+      return;
+    }
     _reconnectTimer?.cancel();
-    _addDebug('Auto-reconnect in 3s...');
-    _reconnectTimer = Timer(const Duration(seconds: 3), () async {
+    final delay = Duration(seconds: 3 + _reconnectAttempts * 2);
+    _addDebug('Reconnect attempt ${_reconnectAttempts + 1}/$_maxReconnectAttempts in ${delay.inSeconds}s...');
+    _reconnectTimer = Timer(delay, () async {
       _reconnectTimer = null;
       if (_manualDisconnect || _isConnected.value) return;
+      _reconnectAttempts++;
       _addDebug('Reconnecting to $_lastConnectedDeviceId...');
       try {
         final device = BluetoothDevice.fromId(_lastConnectedDeviceId!);
         await connect(device);
       } catch (e) {
         _addDebug('Reconnect failed: $e');
-        _scheduleReconnect(); // retry
+        _scheduleReconnect();
       }
     });
   }
