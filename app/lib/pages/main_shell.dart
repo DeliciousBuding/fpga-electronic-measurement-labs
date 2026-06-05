@@ -17,18 +17,21 @@ class MainShell extends ConsumerStatefulWidget {
   ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends ConsumerState<MainShell> {
+class _MainShellState extends ConsumerState<MainShell> with SingleTickerProviderStateMixin {
+  late final PageController _pageCtrl;
   int _index = 0;
   StreamSubscription<BleEvent>? _bleSub;
 
   @override
   void initState() {
     super.initState();
+    _pageCtrl = PageController();
     WidgetsBinding.instance.addPostFrameCallback((_) => _setupBleListener());
   }
 
   @override
   void dispose() {
+    _pageCtrl.dispose();
     _bleSub?.cancel();
     super.dispose();
   }
@@ -67,19 +70,21 @@ class _MainShellState extends ConsumerState<MainShell> {
     final t = AppLocalizations.of(context)!;
 
     return Scaffold(
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
-        child: _buildTab(_index),
+      body: PageView(
+        controller: _pageCtrl,
+        physics: const BouncingScrollPhysics(),
+        onPageChanged: (i) {
+          ref.read(barVisibilityProvider.notifier).show();
+          setState(() => _index = i);
+        },
+        children: const [_ColorTab(), _EffectTab(), _SceneTab(), SettingsPage()],
       ),
       bottomNavigationBar: ClipRect(
         child: Align(alignment: Alignment.topCenter, heightFactor: visibility,
           child: Opacity(opacity: visibility,
             child: NavigationBar(
               selectedIndex: _index, animationDuration: const Duration(milliseconds: 400),
-              onDestinationSelected: (i) { ref.read(barVisibilityProvider.notifier).show(); setState(() => _index = i); },
+              onDestinationSelected: (i) { ref.read(barVisibilityProvider.notifier).show(); _pageCtrl.animateToPage(i, duration: const Duration(milliseconds: 350), curve: Curves.easeInOutCubic); setState(() => _index = i); },
               indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               destinations: [
                 NavigationDestination(icon: const Icon(Icons.light_rounded, size: 22), selectedIcon: const Icon(Icons.light_rounded, size: 22), label: t.navLed),
@@ -93,10 +98,6 @@ class _MainShellState extends ConsumerState<MainShell> {
       ),
     );
   }
-
-  Widget _buildTab(int i) => KeyedSubtree(key: ValueKey(i), child: _tabs[i]);
-
-  List<Widget> get _tabs => [const _ColorTab(), const _EffectTab(), const _SceneTab(), const SettingsPage()];
 }
 
 class _BleBanner extends ConsumerWidget {
@@ -165,6 +166,8 @@ int _findPresetIndex(int r, int g, int b) {
   return -1;
 }
 
+// ─── Color Tab ───
+
 class _ColorTab extends ConsumerWidget {
   const _ColorTab();
   @override
@@ -182,11 +185,10 @@ class _ColorTab extends ConsumerWidget {
       body: ListView(padding: EdgeInsets.fromLTRB(20, topPad, 20, 20), children: [
         const SizedBox(height: 4),
         const _BleBanner(),
-        const SizedBox(height: 12),
-        _LedStrip(color: color, mode: s.mode, brightness: s.brightness, cs: cs, t: t),
         const SizedBox(height: 16),
-        _RgbDisplay(r: s.r, g: s.g, b: s.b, cs: cs),
-        const SizedBox(height: 16),
+        // hero: large color orb + LED strip
+        _ColorHero(color: color, mode: s.mode, brightness: s.brightness, cs: cs, t: t),
+        const SizedBox(height: 20),
         _SliderCard(label: t.brightness, icon: Icons.brightness_7_rounded, value: s.brightness.toDouble(), min: 1, max: 255, color: cs.primary,
             onChanged: (v) { final iv = v.round(); ref.read(deviceProvider.notifier).setBrightness(iv); ble.setBrightnessThrottled(iv); }),
         const SizedBox(height: 12),
@@ -204,14 +206,15 @@ class _ColorTab extends ConsumerWidget {
   }
 }
 
-class _LedStrip extends StatefulWidget {
+/// Hero section: large color orb with LED strip dots below.
+class _ColorHero extends StatefulWidget {
   final Color color; final int mode; final int brightness; final ColorScheme cs; final AppLocalizations t;
-  const _LedStrip({required this.color, required this.mode, required this.brightness, required this.cs, required this.t});
+  const _ColorHero({required this.color, required this.mode, required this.brightness, required this.cs, required this.t});
   @override
-  State<_LedStrip> createState() => _LedStripState();
+  State<_ColorHero> createState() => _ColorHeroState();
 }
 
-class _LedStripState extends State<_LedStrip> with SingleTickerProviderStateMixin {
+class _ColorHeroState extends State<_ColorHero> with SingleTickerProviderStateMixin {
   late AnimationController _ticker;
   late Animation<double> _anim;
 
@@ -221,21 +224,18 @@ class _LedStripState extends State<_LedStrip> with SingleTickerProviderStateMixi
     _ticker = AnimationController(vsync: this, duration: const Duration(seconds: 3))..repeat();
     _anim = CurvedAnimation(parent: _ticker, curve: Curves.easeInOut);
   }
-
   @override
   void dispose() { _ticker.dispose(); super.dispose(); }
 
   Color _ledColor(int index, Color base) {
     final bf = widget.brightness / 255.0;
     final c = Color.fromARGB(255, (base.r * bf).round().clamp(0, 255), (base.g * bf).round().clamp(0, 255), (base.b * bf).round().clamp(0, 255));
-
     switch (widget.mode) {
-      case 1: // breath — all LEDs breathe together
-        final v = (_anim.value * 2 * math.pi);
+      case 1:
+        final v = _anim.value * 2 * math.pi;
         final sin = (0.5 + 0.5 * math.sin(v)).clamp(0.0, 1.0);
         return Color.fromARGB(255, (c.r * sin).round(), (c.g * sin).round(), (c.b * sin).round());
-
-      case 2: // flow — single lit LED with soft trail (FPGA: 1 << pos)
+      case 2:
         final t = _anim.value * 8;
         final pos = t % 8;
         final dist = (pos - index).abs();
@@ -243,12 +243,10 @@ class _LedStripState extends State<_LedStrip> with SingleTickerProviderStateMixi
         final minDist = dist < wrapped ? dist : wrapped;
         final f = (1.0 - minDist / 2.5).clamp(0.0, 1.0);
         return Color.fromARGB(255, (c.r * f).round(), (c.g * f).round(), (c.b * f).round());
-
-      case 3: // gradient — all LEDs same rainbow color (FPGA: gradient_engine)
-        final hue = (_anim.value * 360) % 360;
+      case 3:
+        final hue = (_anim.value * 360 + index * 20) % 360;
         return HSVColor.fromAHSV(1.0, hue, 1.0, bf).toColor();
-
-      default: // static
+      default:
         return c;
     }
   }
@@ -256,35 +254,66 @@ class _LedStripState extends State<_LedStrip> with SingleTickerProviderStateMixi
   @override
   Widget build(BuildContext context) {
     final cs = widget.cs;
-    final baseColor = widget.color;
+    final base = widget.color;
+    final bf = widget.brightness / 255.0;
 
     return AnimatedBuilder(
       animation: _anim,
-      builder: (_, __) => Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: EdgeInsets.zero,
-        child: Padding(padding: const EdgeInsets.fromLTRB(16, 20, 16, 16), child: Column(children: [
-          Row(children: [Icon(Icons.light_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text(widget.t.ledStrip, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface)), const Spacer(), Badge(backgroundColor: baseColor, label: Text('${widget.brightness}', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: Colors.white))), const SizedBox(width: 8), Text(widget.t.brightness, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant))]),
-          const SizedBox(height: 14),
-          Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14), decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: cs.surfaceContainerLowest, border: Border.all(color: cs.outlineVariant.withAlpha(40))), child: Column(children: [
-            Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: _ledColor(i, baseColor), cs: cs))),
-            const SizedBox(height: 8),
-            Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: _ledColor(i + 4, baseColor), cs: cs))),
+      builder: (_, __) {
+        // orb glow intensity for breath/gradient
+        final glowScale = widget.mode == 1
+            ? (0.5 + 0.5 * math.sin(_anim.value * 2 * math.pi))
+            : widget.mode == 3 ? 1.0 : (bf > 0.1 ? 1.0 : 0.0);
+        final orbColor = widget.mode == 3
+            ? HSVColor.fromAHSV(1.0, (_anim.value * 360) % 360, 1.0, bf).toColor()
+            : base;
+
+        return Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          margin: EdgeInsets.zero,
+          child: Padding(padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16), child: Column(children: [
+            // large color orb
+            Center(child: Container(
+              width: 96, height: 96,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: orbColor,
+                boxShadow: [
+                  BoxShadow(color: orbColor.withAlpha((120 * glowScale).round()), blurRadius: 40, spreadRadius: 8),
+                  BoxShadow(color: orbColor.withAlpha((60 * glowScale).round()), blurRadius: 60, spreadRadius: 16),
+                ],
+              ),
+              child: Center(child: Container(
+                width: 36, height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withAlpha((60 * glowScale).round()),
+                ),
+              )),
+            )),
+            const SizedBox(height: 20),
+            // LED dots strip
+            Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: cs.surfaceContainerLowest, border: Border.all(color: cs.outlineVariant.withAlpha(40))), child: Column(children: [
+              Row(spacing: 8, children: List.generate(4, (i) => _LedDot(color: _ledColor(i, base), cs: cs))),
+              const SizedBox(height: 6),
+              Row(spacing: 8, children: List.generate(4, (i) => _LedDot(color: _ledColor(i + 4, base), cs: cs))),
+            ])),
+            const SizedBox(height: 12),
+            // mode badges
+            SizedBox(height: 30, child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              _ModeBadge(active: widget.mode == 0, label: widget.t.modeStatic, color: cs.primary),
+              const SizedBox(width: 6),
+              _ModeBadge(active: widget.mode == 1, label: widget.t.modeBreath, color: const Color(0xFF06B6D4)),
+              const SizedBox(width: 6),
+              _ModeBadge(active: widget.mode == 2, label: widget.t.modeFlow, color: const Color(0xFF3B82F6)),
+              const SizedBox(width: 6),
+              _ModeBadge(active: widget.mode == 3, label: widget.t.modeGradient, color: const Color(0xFF8B5CF6)),
+              const SizedBox(width: 6),
+              _ModeBadge(active: widget.mode == 4, label: widget.t.modeMusic, color: const Color(0xFFEC4899)),
+            ])),
           ])),
-          const SizedBox(height: 12),
-          SizedBox(height: 32, child: Row(children: [
-            _ModeBadge(active: widget.mode == 0, label: widget.t.modeStatic, color: cs.primary),
-            const SizedBox(width: 6),
-            _ModeBadge(active: widget.mode == 1, label: widget.t.modeBreath, color: const Color(0xFF06B6D4)),
-            const SizedBox(width: 6),
-            _ModeBadge(active: widget.mode == 2, label: widget.t.modeFlow, color: const Color(0xFF3B82F6)),
-            const SizedBox(width: 6),
-            _ModeBadge(active: widget.mode == 3, label: widget.t.modeGradient, color: const Color(0xFF8B5CF6)),
-            const SizedBox(width: 6),
-            _ModeBadge(active: widget.mode == 4, label: widget.t.modeMusic, color: const Color(0xFFEC4899)),
-          ])),
-        ])),
-      ),
+        );
+      },
     );
   }
 }
@@ -298,14 +327,13 @@ class _LedDot extends StatelessWidget {
     final lit = color.computeLuminance() > 0.06;
     return Expanded(
       child: AspectRatio(aspectRatio: 1,
-        child: AnimatedContainer(duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic,
+        child: AnimatedContainer(duration: const Duration(milliseconds: 350), curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: lit ? color : cs.surfaceContainerLowest,
-            boxShadow: lit ? [BoxShadow(color: color.withAlpha(80), blurRadius: 12, spreadRadius: 2)] : null,
-            border: Border.all(color: lit ? Colors.white.withAlpha(40) : cs.outlineVariant.withAlpha(80), width: lit ? 1.5 : 1),
+            boxShadow: lit ? [BoxShadow(color: color.withAlpha(100), blurRadius: 16, spreadRadius: 3)] : null,
+            border: Border.all(color: lit ? Colors.white.withAlpha(50) : cs.outlineVariant.withAlpha(80), width: lit ? 1.5 : 1),
           ),
-          child: lit ? Center(child: Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withAlpha(50)))) : null,
         ),
       ),
     );
@@ -317,69 +345,15 @@ class _ModeBadge extends StatelessWidget {
   const _ModeBadge({required this.active, required this.label, required this.color});
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return AnimatedContainer(duration: const Duration(milliseconds: 300),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), color: active ? color.withAlpha(25) : Colors.transparent, border: Border.all(color: active ? color.withAlpha(80) : cs.outlineVariant.withAlpha(60), width: active ? 1.2 : 0.5)),
-      child: Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600, color: active ? color : cs.onSurfaceVariant.withAlpha(120))),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), color: active ? color.withAlpha(25) : Colors.transparent, border: Border.all(color: active ? color.withAlpha(80) : Theme.of(context).colorScheme.outlineVariant.withAlpha(60), width: active ? 1.2 : 0.5)),
+      child: Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600, color: active ? color : Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(120))),
     );
   }
 }
 
-class _RgbDisplay extends StatelessWidget {
-  final int r, g, b; final ColorScheme cs;
-  const _RgbDisplay({required this.r, required this.g, required this.b, required this.cs});
-
-  String get _hex => '#${r.toRadixString(16).padLeft(2, '0')}${g.toRadixString(16).padLeft(2, '0')}${b.toRadixString(16).padLeft(2, '0')}'.toUpperCase();
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
-    return Tooltip(
-    message: t.copyHexTooltip(_hex),
-    child: GestureDetector(
-      onTap: () {
-        Clipboard.setData(ClipboardData(text: _hex));
-        HapticFeedback.lightImpact();
-        final t = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(t.hexCopied(_hex)),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 1),
-        ));
-      },
-      child: Center(
-        child: Container(padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(40), color: cs.surfaceContainerLowest, boxShadow: [BoxShadow(color: cs.shadow.withAlpha(20), blurRadius: 8, offset: const Offset(0, 2))]),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            _Chip(label: 'R', value: r, color: const Color(0xFFEF4444)),
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Container(width: 4, height: 4, decoration: BoxDecoration(shape: BoxShape.circle, color: cs.onSurfaceVariant.withAlpha(80)))),
-            _Chip(label: 'G', value: g, color: const Color(0xFF22C55E)),
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Container(width: 4, height: 4, decoration: BoxDecoration(shape: BoxShape.circle, color: cs.onSurfaceVariant.withAlpha(80)))),
-            _Chip(label: 'B', value: b, color: const Color(0xFF3B82F6)),
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Container(width: 4, height: 4, decoration: BoxDecoration(shape: BoxShape.circle, color: cs.onSurfaceVariant.withAlpha(80)))),
-            Text(_hex, style: Theme.of(context).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600, fontFamily: 'monospace', color: cs.onSurfaceVariant)),
-          ]),
-        ),
-      ),
-    ),
-  );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  final String label; final int value; final Color color;
-  const _Chip({required this.label, required this.value, required this.color});
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Row(mainAxisSize: MainAxisSize.min, children: [
-      Text(label, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: color)),
-      const SizedBox(width: 4),
-      Text('$value', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface)),
-    ]);
-  }
-}
+// ─── Shared Widgets ───
 
 class _SliderCard extends StatelessWidget {
   final String label; final IconData icon; final double value, min, max; final Color color; final ValueChanged<double> onChanged;
@@ -478,25 +452,26 @@ class _QuickActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
+    final t = AppLocalizations.of(context)!;
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [Icon(Icons.flash_on_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text(AppLocalizations.of(context)!.quickActions, style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface))]),
+        Row(children: [Icon(Icons.flash_on_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text(t.quickActions, style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface))]),
         const SizedBox(height: 14),
         Row(children: [
-          Expanded(child: _actionChip(context, Icons.power_settings_new_rounded, AppLocalizations.of(context)!.actionPowerOff, cs.error, () => onColor(0, 0, 0))),
+          Expanded(child: _actionChip(context, Icons.power_settings_new_rounded, t.actionPowerOff, cs.error, () => onColor(0, 0, 0))),
           const SizedBox(width: 10),
-          Expanded(child: _actionChip(context, Icons.light_mode_rounded, AppLocalizations.of(context)!.actionFullWhite, cs.tertiary, () => onColor(255, 255, 255))),
+          Expanded(child: _actionChip(context, Icons.light_mode_rounded, t.actionFullWhite, cs.tertiary, () => onColor(255, 255, 255))),
           const SizedBox(width: 10),
-          Expanded(child: _actionChip(context, Icons.casino_rounded, AppLocalizations.of(context)!.actionRandom, cs.primary, () => onColor(_rng.nextInt(256), _rng.nextInt(256), _rng.nextInt(256)))),
+          Expanded(child: _actionChip(context, Icons.casino_rounded, t.actionRandom, cs.primary, () => onColor(_rng.nextInt(256), _rng.nextInt(256), _rng.nextInt(256)))),
         ]),
         const SizedBox(height: 10),
         Row(children: [
-          Expanded(child: _actionChip(context, Icons.local_fire_department_rounded, AppLocalizations.of(context)!.actionWarmLight, const Color(0xFFFFB347), () => onColor(255, 179, 71))),
+          Expanded(child: _actionChip(context, Icons.local_fire_department_rounded, t.actionWarmLight, const Color(0xFFFFB347), () => onColor(255, 179, 71))),
           const SizedBox(width: 10),
-          Expanded(child: _actionChip(context, Icons.ac_unit_rounded, AppLocalizations.of(context)!.actionCoolLight, const Color(0xFFB3E5FC), () => onColor(179, 229, 252))),
+          Expanded(child: _actionChip(context, Icons.ac_unit_rounded, t.actionCoolLight, const Color(0xFFB3E5FC), () => onColor(179, 229, 252))),
           const SizedBox(width: 10),
-          Expanded(child: _actionChip(context, Icons.gradient_rounded, AppLocalizations.of(context)!.actionRainbow, const Color(0xFFE879F9), () {
+          Expanded(child: _actionChip(context, Icons.gradient_rounded, t.actionRainbow, const Color(0xFFE879F9), () {
             final hue = (_rng.nextDouble() * 360);
             final c = HSVColor.fromAHSV(1.0, hue, 1.0, 1.0).toColor();
             onColor((c.r * 255).round(), (c.g * 255).round(), (c.b * 255).round());
@@ -522,6 +497,8 @@ class _QuickActions extends StatelessWidget {
     );
   }
 }
+
+// ─── Effect Tab ───
 
 class _EffectTab extends ConsumerWidget {
   const _EffectTab();
@@ -602,11 +579,10 @@ class _EffectPreviewState extends State<_EffectPreview> with SingleTickerProvide
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: widget.active ? c.withAlpha(30) : widget.cs.surfaceContainerLowest),
         child: Center(child: Row(mainAxisSize: MainAxisSize.min, spacing: 3, children: List.generate(4, (i) {
           final alpha = switch (widget.mode) {
-            0 => 1.0, // static: all lit
-            1 => 0.5 + 0.5 * math.sin(_ctrl.value * 2 * math.pi), // breath
-            2 => () { final pos = _ctrl.value * 4; final d = (pos - i).abs(); return (1.0 - d).clamp(0.2, 1.0); }(), // flow
-            3 => HSVColor.fromAHSV(1.0, (_ctrl.value * 360 + i * 30) % 360, 1.0, 1.0).toColor().withAlpha(255).a.toDouble(), // gradient handled below
-            _ => 0.3,
+            0 => 1.0,
+            1 => 0.5 + 0.5 * math.sin(_ctrl.value * 2 * math.pi),
+            2 => () { final pos = _ctrl.value * 4; final d = (pos - i).abs(); return (1.0 - d).clamp(0.2, 1.0); }(),
+            _ => 1.0,
           };
           final dotColor = widget.mode == 3
               ? HSVColor.fromAHSV(1.0, (_ctrl.value * 360 + i * 30) % 360, 1.0, 1.0).toColor()
@@ -625,6 +601,8 @@ class _EffectPreviewState extends State<_EffectPreview> with SingleTickerProvide
     );
   }
 }
+
+// ─── Scene Tab ───
 
 class _SceneTab extends ConsumerWidget {
   const _SceneTab();
@@ -666,7 +644,7 @@ class _SceneTab extends ConsumerWidget {
               color: saved ? accent.withAlpha(15) : cs.surfaceContainerLow,
               child: InkWell(borderRadius: BorderRadius.circular(14),
                 onTap: () { HapticFeedback.selectionClick(); ble.loadScene(i); Future.delayed(const Duration(milliseconds: 300), () => ble.queryStatus()); },
-                onLongPress: () { HapticFeedback.mediumImpact(); ble.saveScene(i); ref.read(deviceProvider.notifier).markSceneSaved(i); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.sceneSaved(scene.$3)), duration: const Duration(seconds: 1), behavior: SnackBarBehavior.floating)); },
+                onLongPress: () { HapticFeedback.mediumImpact(); ble.saveScene(i); ref.read(deviceProvider.notifier).markSceneSaved(i); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.sceneSaved(scene.$3)), duration: const Duration(seconds: 1), behavior: SnackBarBehavior.floating)); },
                 child: Padding(padding: const EdgeInsets.all(12), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Stack(clipBehavior: Clip.none, children: [
                     Container(width: 48, height: 48, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight)), child: Icon(scene.$1, color: Colors.white.withAlpha(220), size: 24)),
