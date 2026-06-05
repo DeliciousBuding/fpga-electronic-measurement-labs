@@ -543,7 +543,7 @@ class _EffectTab extends ConsumerWidget {
               child: InkWell(borderRadius: BorderRadius.circular(12),
                 onTap: disabled ? null : () { HapticFeedback.selectionClick(); ref.read(deviceProvider.notifier).setMode(m.$1); ble.setMode(m.$1); },
                 child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
-                  AnimatedContainer(duration: const Duration(milliseconds: 300), width: 52, height: 52, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: sel ? m.$5.withAlpha(30) : cs.surfaceContainerLowest), child: Icon(m.$3, color: disabled ? cs.onSurfaceVariant.withAlpha(60) : (sel ? m.$5 : cs.onSurfaceVariant), size: 28)),
+                  _EffectPreview(mode: m.$1, color: m.$5, active: sel, disabled: disabled, cs: cs),
                   const SizedBox(width: 16),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(m.$2, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: disabled ? cs.onSurfaceVariant.withAlpha(80) : (sel ? cs.onPrimaryContainer : cs.onSurface))),
@@ -561,6 +561,55 @@ class _EffectTab extends ConsumerWidget {
         if (s.mode == 1) ...[ const SizedBox(height: 4), _SliderCard(label: '呼吸周期', icon: Icons.timelapse_rounded, value: s.breathPeriod.toDouble(), min: 1, max: 255, color: const Color(0xFF06B6D4), onChanged: (v) { final iv = v.round(); ref.read(deviceProvider.notifier).setBreathPeriod(iv); ble.setBreathPeriodThrottled(iv); }) ],
         const SizedBox(height: 24),
       ]),
+    );
+  }
+}
+
+class _EffectPreview extends StatefulWidget {
+  final int mode; final Color color; final bool active, disabled; final ColorScheme cs;
+  const _EffectPreview({required this.mode, required this.color, required this.active, required this.disabled, required this.cs});
+  @override
+  State<_EffectPreview> createState() => _EffectPreviewState();
+}
+
+class _EffectPreviewState extends State<_EffectPreview> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() { super.initState(); _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(); }
+  @override
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.disabled ? widget.cs.onSurfaceVariant.withAlpha(60) : widget.color;
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) => Container(
+        width: 52, height: 52,
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: widget.active ? c.withAlpha(30) : widget.cs.surfaceContainerLowest),
+        child: Center(child: Row(mainAxisSize: MainAxisSize.min, spacing: 3, children: List.generate(4, (i) {
+          final alpha = switch (widget.mode) {
+            0 => 1.0, // static: all lit
+            1 => 0.5 + 0.5 * math.sin(_ctrl.value * 2 * math.pi), // breath
+            2 => () { final pos = _ctrl.value * 4; final d = (pos - i).abs(); return (1.0 - d).clamp(0.2, 1.0); }(), // flow
+            3 => HSVColor.fromAHSV(1.0, (_ctrl.value * 360 + i * 30) % 360, 1.0, 1.0).toColor().withAlpha(255).a.toDouble(), // gradient handled below
+            _ => 0.3,
+          };
+          final dotColor = widget.mode == 3
+              ? HSVColor.fromAHSV(1.0, (_ctrl.value * 360 + i * 30) % 360, 1.0, 1.0).toColor()
+              : c;
+          final f = widget.mode == 3 ? 1.0 : alpha.clamp(0.1, 1.0);
+          return Container(
+            width: 8, height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color.fromARGB((f * 255).round(), (dotColor.r * 255).round(), (dotColor.g * 255).round(), (dotColor.b * 255).round()),
+              boxShadow: f > 0.5 ? [BoxShadow(color: dotColor.withAlpha((f * 60).round()), blurRadius: 4)] : null,
+            ),
+          );
+        }))),
+      ),
     );
   }
 }
