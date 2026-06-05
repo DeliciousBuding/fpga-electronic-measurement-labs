@@ -220,16 +220,25 @@ class _LedStripState extends State<_LedStrip> with SingleTickerProviderStateMixi
     final c = Color.fromARGB(255, (base.r * bf).round().clamp(0, 255), (base.g * bf).round().clamp(0, 255), (base.b * bf).round().clamp(0, 255));
 
     switch (widget.mode) {
-      case 1: // breath
+      case 1: // breath — all LEDs breathe together
         final v = (_anim.value * 2 * math.pi);
         final sin = (0.5 + 0.5 * math.sin(v)).clamp(0.0, 1.0);
         return Color.fromARGB(255, (c.r * sin).round(), (c.g * sin).round(), (c.b * sin).round());
-      case 2: // flow
-        final shift = (_anim.value * 8 + index) % 8;
-        final dist = (shift - 4).abs();
-        final f = (1.0 - dist / 5.0).clamp(0.0, 1.0);
+
+      case 2: // flow — single lit LED with soft trail (FPGA: 1 << pos)
+        final t = _anim.value * 8;
+        final pos = t % 8;
+        final dist = (pos - index).abs();
+        final wrapped = (8 - dist).abs();
+        final minDist = dist < wrapped ? dist : wrapped;
+        final f = (1.0 - minDist / 2.5).clamp(0.0, 1.0);
         return Color.fromARGB(255, (c.r * f).round(), (c.g * f).round(), (c.b * f).round());
-      default:
+
+      case 3: // gradient — all LEDs same rainbow color (FPGA: gradient_engine)
+        final hue = (_anim.value * 360) % 360;
+        return HSVColor.fromAHSV(1.0, hue, 1.0, bf).toColor();
+
+      default: // static
         return c;
     }
   }
@@ -245,7 +254,7 @@ class _LedStripState extends State<_LedStrip> with SingleTickerProviderStateMixi
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: EdgeInsets.zero,
         child: Padding(padding: const EdgeInsets.fromLTRB(16, 20, 16, 16), child: Column(children: [
-          Row(children: [Icon(Icons.light_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text('LED 灯带', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface)), const Spacer(), Badge(backgroundColor: baseColor, label: Text('${widget.brightness}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11, color: Colors.white))), const SizedBox(width: 8), Text('亮度', style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant))]),
+          Row(children: [Icon(Icons.light_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text('LED 灯带', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface)), const Spacer(), Badge(backgroundColor: baseColor, label: Text('${widget.brightness}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11, color: Colors.white))), const SizedBox(width: 8), Text('亮度', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant))]),
           const SizedBox(height: 14),
           Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14), decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: cs.surfaceContainerLowest, border: Border.all(color: cs.outlineVariant.withAlpha(40))), child: Column(children: [
             Row(spacing: 10, children: List.generate(4, (i) => _LedDot(color: _ledColor(i, baseColor), cs: cs))),
@@ -302,7 +311,7 @@ class _ModeBadge extends StatelessWidget {
     return AnimatedContainer(duration: const Duration(milliseconds: 300),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), color: active ? color.withAlpha(25) : Colors.transparent, border: Border.all(color: active ? color.withAlpha(80) : cs.outlineVariant.withAlpha(60), width: active ? 1.2 : 0.5)),
-      child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: active ? color : cs.onSurfaceVariant.withAlpha(120))),
+      child: Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600, color: active ? color : cs.onSurfaceVariant.withAlpha(120))),
     );
   }
 }
@@ -329,11 +338,14 @@ class _Chip extends StatelessWidget {
   final String label; final int value; final Color color;
   const _Chip({required this.label, required this.value, required this.color});
   @override
-  Widget build(BuildContext context) => Row(mainAxisSize: MainAxisSize.min, children: [
-    Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: color)),
-    const SizedBox(width: 4),
-    Text('$value', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Theme.of(context).colorScheme.onSurface)),
-  ]);
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      Text(label, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: color)),
+      const SizedBox(width: 4),
+      Text('$value', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface)),
+    ]);
+  }
 }
 
 class _SliderCard extends StatelessWidget {
@@ -345,7 +357,7 @@ class _SliderCard extends StatelessWidget {
     final pct = ((value - min) / (max - min) * 100).round();
     return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(padding: const EdgeInsets.fromLTRB(20, 16, 20, 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [Icon(icon, size: 20, color: color), const SizedBox(width: 8), Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface)), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: color.withAlpha(25)), child: Text('$pct%', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: color)))]),
+        Row(children: [Icon(icon, size: 20, color: color), const SizedBox(width: 8), Text(label, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface)), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: color.withAlpha(25)), child: Text('$pct%', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: color)))]),
         SliderTheme(data: SliderThemeData(trackHeight: 6, thumbShape: _GlowThumb(color: color), activeTrackColor: color, inactiveTrackColor: color.withAlpha(30), thumbColor: color, overlayColor: color.withAlpha(20), overlayShape: const RoundSliderOverlayShape(overlayRadius: 18)), child: Slider(value: value, min: min, max: max, onChanged: onChanged)),
       ])),
     );
@@ -388,7 +400,7 @@ class _SliverRow extends StatelessWidget {
     return Row(children: [
       SizedBox(width: 36, child: Row(children: [Icon(icon, size: 14, color: color), const SizedBox(width: 6), Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: color))])),
       Expanded(child: SliderTheme(data: SliderThemeData(trackHeight: 5, thumbShape: RoundSliderThumbShape(enabledThumbRadius: 7), activeTrackColor: color, inactiveTrackColor: color.withAlpha(25), thumbColor: color, overlayColor: color.withAlpha(20), overlayShape: const RoundSliderOverlayShape(overlayRadius: 14)), child: Slider(value: value.toDouble(), min: 0, max: 255, onChanged: (x) => onChanged(x.round())))),
-      SizedBox(width: 36, child: Text('$value', textAlign: TextAlign.end, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: cs.onSurfaceVariant))),
+      SizedBox(width: 36, child: Text('$value', textAlign: TextAlign.end, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500, color: cs.onSurfaceVariant))),
     ]);
   }
 }
@@ -401,7 +413,7 @@ class _PresetColors extends StatelessWidget {
     final sel = _findPresetIndex(r, g, b);
     return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [Icon(Icons.palette_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text('预设颜色', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: cs.onSurface))]),
+        Row(children: [Icon(Icons.palette_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text('预设颜色', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface))]),
         const SizedBox(height: 16),
         Wrap(spacing: 14, runSpacing: 14, children: List.generate(presetColors.length, (i) {
           final e = presetColors[i]; final cl = Color(e.$1);
@@ -457,11 +469,11 @@ class _EffectTab extends ConsumerWidget {
                   AnimatedContainer(duration: const Duration(milliseconds: 300), width: 52, height: 52, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: sel ? m.$5.withAlpha(30) : cs.surfaceContainerLowest), child: Icon(m.$3, color: disabled ? cs.onSurfaceVariant.withAlpha(60) : (sel ? m.$5 : cs.onSurfaceVariant), size: 28)),
                   const SizedBox(width: 16),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(m.$2, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: disabled ? cs.onSurfaceVariant.withAlpha(80) : (sel ? cs.onPrimaryContainer : cs.onSurface))),
+                    Text(m.$2, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: disabled ? cs.onSurfaceVariant.withAlpha(80) : (sel ? cs.onPrimaryContainer : cs.onSurface))),
                     const SizedBox(height: 2),
-                    Text(m.$4, style: TextStyle(fontSize: 13, color: disabled ? cs.onSurfaceVariant.withAlpha(60) : (sel ? cs.onPrimaryContainer.withAlpha(180) : cs.onSurfaceVariant))),
+                    Text(m.$4, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: disabled ? cs.onSurfaceVariant.withAlpha(60) : (sel ? cs.onPrimaryContainer.withAlpha(180) : cs.onSurfaceVariant))),
                   ])),
-                  if (disabled) Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), color: cs.outlineVariant.withAlpha(30)), child: Text('WIP', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant.withAlpha(100))))
+                  if (disabled) Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), color: cs.outlineVariant.withAlpha(30)), child: Text('WIP', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: cs.onSurfaceVariant.withAlpha(100))))
                   else if (sel) Container(width: 28, height: 28, decoration: BoxDecoration(shape: BoxShape.circle, color: m.$5), child: const Icon(Icons.check_rounded, color: Colors.white, size: 18)),
                 ])),
               ),
@@ -485,8 +497,16 @@ class _SceneTab extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
 
-    final sceneIcons = [Icons.favorite_rounded, Icons.star_rounded, Icons.thumb_up_rounded, Icons.rocket_launch_rounded, Icons.emoji_emotions_rounded, Icons.local_fire_department_rounded, Icons.diamond_rounded, Icons.bolt_rounded];
-    final sceneColors = [0xFFEF4444, 0xFFF97316, 0xFFEAB308, 0xFF22C55E, 0xFF06B6D4, 0xFF3B82F6, 0xFF8B5CF6, 0xFFEC4899];
+    final scenes = [
+      (Icons.wb_twilight_rounded, Color(0xFFEF4444), '日暮'),
+      (Icons.auto_awesome_rounded, Color(0xFF06B6D4), '极光'),
+      (Icons.nightlife_rounded, Color(0xFF8B5CF6), '霓虹'),
+      (Icons.local_fire_department_rounded, Color(0xFFF97316), '烈焰'),
+      (Icons.forest_rounded, Color(0xFF22C55E), '森林'),
+      (Icons.water_drop_rounded, Color(0xFF38BDF8), '深海'),
+      (Icons.wb_sunny_rounded, Color(0xFFFBBF24), '暖阳'),
+      (Icons.bolt_rounded, Color(0xFFE879F9), '电光'),
+    ];
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -499,20 +519,21 @@ class _SceneTab extends ConsumerWidget {
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.82),
           itemCount: 8,
           itemBuilder: (_, i) {
-            final accent = Color(sceneColors[i]);
+            final scene = scenes[i];
+            final accent = scene.$2;
             final saved = s.sceneSaved.length > i && s.sceneSaved[i];
             return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: saved ? BorderSide(color: accent.withAlpha(120), width: 1.5) : BorderSide(color: cs.outlineVariant.withAlpha(60))),
               color: saved ? accent.withAlpha(15) : cs.surfaceContainerLow,
               child: InkWell(borderRadius: BorderRadius.circular(12),
                 onTap: () { ble.loadScene(i); Future.delayed(const Duration(milliseconds: 300), () => ble.queryStatus()); },
-                onLongPress: () { ble.saveScene(i); ref.read(deviceProvider.notifier).markSceneSaved(i); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已保存到场景 ${i+1}'), duration: const Duration(seconds: 1), behavior: SnackBarBehavior.floating)); },
+                onLongPress: () { ble.saveScene(i); ref.read(deviceProvider.notifier).markSceneSaved(i); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已保存「${scene.$3}」'), duration: const Duration(seconds: 1), behavior: SnackBarBehavior.floating)); },
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Stack(clipBehavior: Clip.none, children: [
-                    Container(width: 44, height: 44, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: accent.withAlpha(saved ? 40 : 25)), child: Icon(sceneIcons[i], color: accent, size: 24)),
+                    Container(width: 44, height: 44, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: accent.withAlpha(saved ? 40 : 25)), child: Icon(scene.$1, color: accent, size: 24)),
                     if (saved) Positioned(right: -2, top: -2, child: Container(width: 16, height: 16, decoration: BoxDecoration(shape: BoxShape.circle, color: accent), child: const Icon(Icons.check_rounded, color: Colors.white, size: 12))),
                   ]),
                   const SizedBox(height: 8),
-                  Text('场景 ${i+1}', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: cs.onSurfaceVariant)),
+                  Text(scene.$3, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
                 ]),
               ),
             );
