@@ -63,7 +63,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
     if (_bleOff) return _buildBleOff(context, cs, t, topPad);
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(title: Text(t.scanTitle), centerTitle: true, elevation: 0),
+      appBar: AppBar(title: Text(t.scanTitle), centerTitle: false, elevation: 0),
       body: Column(children: [
         SizedBox(height: topPad),
         SizedBox(height: 140, child: Stack(alignment: Alignment.center, children: [
@@ -102,7 +102,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> with SingleTickerProv
 
   Widget _buildBleOff(BuildContext context, ColorScheme cs, AppLocalizations t, double topPad) => Scaffold(
     extendBodyBehindAppBar: true,
-    appBar: AppBar(title: Text(t.scanTitle), centerTitle: true, elevation: 0),
+    appBar: AppBar(title: Text(t.scanTitle), centerTitle: false, elevation: 0),
     body: Column(children: [
       SizedBox(height: topPad + 40), const Spacer(),
       Container(width: 96, height: 96, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: cs.surfaceContainerLow), child: Icon(Icons.bluetooth_disabled_rounded, size: 48, color: cs.onSurfaceVariant.withAlpha(100))),

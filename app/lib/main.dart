@@ -49,7 +49,7 @@ class RgbControllerApp extends ConsumerWidget {
             fontFamily: themeState.fontFamilyName,
             pageTransitionsTheme: const PageTransitionsTheme(builders: {TargetPlatform.android: CupertinoPageTransitionsBuilder(), TargetPlatform.iOS: CupertinoPageTransitionsBuilder()}),
             cardTheme: CardThemeData(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), color: lightScheme.surfaceContainerLow, margin: EdgeInsets.zero),
-            navigationBarTheme: NavigationBarThemeData(indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), indicatorColor: lightScheme.secondaryContainer, labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected),
+            navigationBarTheme: NavigationBarThemeData(indicatorShape: const StadiumBorder(), indicatorColor: lightScheme.secondaryContainer, labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected),
           ),
           darkTheme: ThemeData(
             colorScheme: darkScheme,
@@ -57,7 +57,7 @@ class RgbControllerApp extends ConsumerWidget {
             fontFamily: themeState.fontFamilyName,
             pageTransitionsTheme: const PageTransitionsTheme(builders: {TargetPlatform.android: CupertinoPageTransitionsBuilder(), TargetPlatform.iOS: CupertinoPageTransitionsBuilder()}),
             cardTheme: CardThemeData(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), color: darkScheme.surfaceContainerLow, margin: EdgeInsets.zero),
-            navigationBarTheme: NavigationBarThemeData(indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), indicatorColor: darkScheme.secondaryContainer, labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected),
+            navigationBarTheme: NavigationBarThemeData(indicatorShape: const StadiumBorder(), indicatorColor: darkScheme.secondaryContainer, labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected),
           ),
           builder: (context, child) {
             final brightness = Theme.of(context).brightness;
@@ -95,7 +95,12 @@ class _BLEGateState extends ConsumerState<BLEGate> with SingleTickerProviderStat
   }
 
   Future<void> _initBLE() async {
-    try { await ref.read(bleServiceProvider).init(); } catch (_) {}
+    try {
+      await ref.read(bleServiceProvider).init().timeout(const Duration(seconds: 10));
+    } catch (_) {
+      // BLE init failure is non-fatal — user can still use the app
+      // and will see the BLE-off banner with connect button
+    }
     if (mounted) {
       await _splashCtrl.reverse();
       setState(() => _ready = true);
