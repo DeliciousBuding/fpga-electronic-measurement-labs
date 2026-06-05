@@ -398,6 +398,12 @@ abstract class AppLocalizations {
   /// **'电光'**
   String get sceneLightning;
 
+  /// No description provided for @sceneLoaded.
+  ///
+  /// In zh, this message translates to:
+  /// **'已加载「{name}」'**
+  String sceneLoaded(String name);
+
   /// No description provided for @scanTitle.
   ///
   /// In zh, this message translates to:

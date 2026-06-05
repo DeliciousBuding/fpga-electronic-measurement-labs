@@ -91,6 +91,12 @@
   "sceneOcean": "Ocean",
   "sceneWarmSun": "Warm Sun",
   "sceneLightning": "Lightning",
+  "sceneLoaded": "Loaded「{name}」",
+  "@sceneLoaded": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
 
   "scanTitle": "Scan BLE Devices",
   "scanHint": "Make sure CH9143 BLE module is powered on",

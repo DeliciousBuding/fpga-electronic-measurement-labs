@@ -220,9 +220,25 @@ class _ColorHeroState extends State<_ColorHero> with SingleTickerProviderStateMi
   @override
   void initState() {
     super.initState();
-    _ticker = AnimationController(vsync: this, duration: const Duration(seconds: 3))..repeat();
+    _ticker = AnimationController(vsync: this, duration: const Duration(seconds: 3));
     _anim = CurvedAnimation(parent: _ticker, curve: Curves.easeInOut);
+    _updateAnimation();
   }
+
+  @override
+  void didUpdateWidget(covariant _ColorHero old) {
+    super.didUpdateWidget(old);
+    if (old.mode != widget.mode) _updateAnimation();
+  }
+
+  void _updateAnimation() {
+    if (widget.mode >= 1 && widget.mode <= 3) {
+      if (!_ticker.isAnimating) _ticker.repeat();
+    } else {
+      _ticker.stop();
+    }
+  }
+
   @override
   void dispose() { _ticker.dispose(); super.dispose(); }
 
@@ -293,12 +309,29 @@ class _ColorHeroState extends State<_ColorHero> with SingleTickerProviderStateMi
                 ),
               )),
             )),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
+            // hex label
+            Builder(builder: (context) {
+              final hex = '#${widget.color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
+              return Tooltip(
+                message: t.copyHexTooltip(hex),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () { Clipboard.setData(ClipboardData(text: hex)); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.hexCopied(hex)), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 1))); },
+                  child: Padding(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Text(hex, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600, fontFamily: 'monospace', color: cs.onSurfaceVariant)),
+                    const SizedBox(width: 4),
+                    Icon(Icons.copy_rounded, size: 14, color: cs.onSurfaceVariant.withAlpha(120)),
+                  ])),
+                ),
+              );
+            }),
+            const SizedBox(height: 12),
             // LED dots strip
             Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: cs.surfaceContainerLowest, border: Border.all(color: cs.outlineVariant.withAlpha(40))), child: Column(children: [
-              Row(spacing: 8, children: List.generate(4, (i) => _LedDot(color: _ledColor(i, base), cs: cs))),
+              Row(spacing: 8, children: List.generate(4, (i) => _LedDot(color: _ledColor(i, base)))),
               const SizedBox(height: 6),
-              Row(spacing: 8, children: List.generate(4, (i) => _LedDot(color: _ledColor(i + 4, base), cs: cs))),
+              Row(spacing: 8, children: List.generate(4, (i) => _LedDot(color: _ledColor(i + 4, base)))),
             ])),
             const SizedBox(height: 12),
             // mode badges
@@ -321,11 +354,12 @@ class _ColorHeroState extends State<_ColorHero> with SingleTickerProviderStateMi
 }
 
 class _LedDot extends StatelessWidget {
-  final Color color; final ColorScheme cs;
-  const _LedDot({required this.color, required this.cs});
+  final Color color;
+  const _LedDot({required this.color});
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final lit = color.computeLuminance() > 0.06;
     return Expanded(
       child: AspectRatio(aspectRatio: 1,
@@ -391,13 +425,19 @@ class _ColorSlidersCard extends StatelessWidget {
   final int r, g, b; final ValueChanged<int> onR, onG, onB;
   const _ColorSlidersCard({required this.r, required this.g, required this.b, required this.onR, required this.onG, required this.onB});
   @override
-  Widget build(BuildContext context) => Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    child: Padding(padding: const EdgeInsets.fromLTRB(16, 16, 12, 12), child: Column(children: [
-      _SliverRow(label: 'R', icon: Icons.circle, value: r, color: const Color(0xFFEF4444), onChanged: onR),
-      const SizedBox(height: 8), _SliverRow(label: 'G', icon: Icons.circle, value: g, color: const Color(0xFF22C55E), onChanged: onG),
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final t = AppLocalizations.of(context)!;
+    return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(padding: const EdgeInsets.fromLTRB(16, 16, 12, 12), child: Column(children: [
+        Row(children: [Icon(Icons.tune_rounded, size: 18, color: cs.primary), const SizedBox(width: 8), Text(t.ledStrip, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface))]),
+        const SizedBox(height: 14),
+        _SliverRow(label: 'R', icon: Icons.circle, value: r, color: const Color(0xFFEF4444), onChanged: onR),
+        const SizedBox(height: 8), _SliverRow(label: 'G', icon: Icons.circle, value: g, color: const Color(0xFF22C55E), onChanged: onG),
       const SizedBox(height: 8), _SliverRow(label: 'B', icon: Icons.circle, value: b, color: const Color(0xFF3B82F6), onChanged: onB),
     ])),
   );
+}
 }
 
 class _SliverRow extends StatelessWidget {
@@ -665,7 +705,7 @@ class _SceneTab extends ConsumerWidget {
             return Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: saved ? BorderSide(color: accent.withAlpha(120), width: 1.5) : BorderSide(color: cs.outlineVariant.withAlpha(60))),
               color: saved ? accent.withAlpha(15) : cs.surfaceContainerLow,
               child: InkWell(borderRadius: BorderRadius.circular(14),
-                onTap: () { HapticFeedback.selectionClick(); ble.loadScene(i); Future.delayed(const Duration(milliseconds: 300), () => ble.queryStatus()); },
+                onTap: () { HapticFeedback.selectionClick(); ble.loadScene(i); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.sceneLoaded(scene.$3)), duration: const Duration(seconds: 1), behavior: SnackBarBehavior.floating)); Future.delayed(const Duration(milliseconds: 300), () => ble.queryStatus()); },
                 onLongPress: () { HapticFeedback.mediumImpact(); ble.saveScene(i); ref.read(deviceProvider.notifier).markSceneSaved(i); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.sceneSaved(scene.$3)), duration: const Duration(seconds: 1), behavior: SnackBarBehavior.floating)); },
                 child: Padding(padding: const EdgeInsets.all(12), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Stack(clipBehavior: Clip.none, children: [
