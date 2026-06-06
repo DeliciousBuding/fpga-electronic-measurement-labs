@@ -69,19 +69,16 @@ class _EffectTabState extends ConsumerState<EffectTab>
       extendBodyBehindAppBar: true,
       appBar: AppBar(
           title: Text(t.navEffect),
-          centerTitle: false,
-          elevation: 0,
-          scrolledUnderElevation: 1,
           actions: const [BleAction()]),
       body: ListView(
         padding: EdgeInsets.fromLTRB(16, topPad, 16, bottomPad),
         children: [
           const SizedBox(height: 4),
           const BleBanner(),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           for (final e in effects)
             Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(bottom: 8),
               child: _EffectCard(
                 def: e,
                 selected: activeMode == e.mode,
@@ -163,12 +160,12 @@ class _EffectCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(children: [
             ctrl != null
                 ? _AnimatedPreview(ctrl: ctrl!, mode: def.mode, color: def.color)
                 : _StaticPreview(icon: def.icon, color: def.color),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(def.name,
@@ -222,7 +219,7 @@ class _AnimatedPreview extends StatelessWidget {
     return AnimatedBuilder(
       animation: ctrl,
       builder: (context, _) => Container(
-        width: 52, height: 52,
+        width: 44, height: 44,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: color.withAlpha(30)),
@@ -261,7 +258,7 @@ class _StaticPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Container(
-      width: 52, height: 52,
+      width: 44, height: 44,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           color: cs.surfaceContainerLowest),

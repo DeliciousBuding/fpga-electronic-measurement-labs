@@ -97,15 +97,15 @@ class _BLEGateState extends ConsumerState<BLEGate> with SingleTickerProviderStat
   }
 
   Future<void> _initBLE() async {
-    try {
-      await ref.read(bleServiceProvider).init().timeout(const Duration(seconds: 10));
-    } catch (_) {
-      // BLE init failure is non-fatal — user can still use the app
-      // and will see the BLE-off banner with connect button
-    }
+    // Show main UI immediately, init BLE in background
     if (mounted) {
       await _splashCtrl.reverse();
       setState(() => _ready = true);
+    }
+    try {
+      await ref.read(bleServiceProvider).init().timeout(const Duration(seconds: 10));
+    } catch (_) {
+      // BLE init failure is non-fatal
     }
   }
 
