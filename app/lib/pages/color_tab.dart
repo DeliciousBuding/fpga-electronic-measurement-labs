@@ -26,9 +26,6 @@ class ColorTab extends ConsumerWidget {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
           title: Text(t.appTitle),
-          centerTitle: false,
-          elevation: 0,
-          scrolledUnderElevation: 1,
           surfaceTintColor: Colors.transparent,
           actions: const [BleAction()]),
       body: ListView(

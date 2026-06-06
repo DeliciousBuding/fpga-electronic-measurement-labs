@@ -488,6 +488,8 @@ abstract class AppLocalizations {
   /// **'中文'**
   String get settingsLangZh;
 
+  String get settingsLangEn;
+
   /// No description provided for @settingsTheme.
   ///
   /// In zh, this message translates to:

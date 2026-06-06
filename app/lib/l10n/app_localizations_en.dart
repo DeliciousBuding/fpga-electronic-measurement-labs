@@ -216,6 +216,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLangZh => 'Chinese';
+  @override
+  String get settingsLangEn => 'English';
 
   @override
   String get settingsTheme => 'Theme';

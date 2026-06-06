@@ -22,6 +22,22 @@ class _EffectTabState extends ConsumerState<EffectTab>
   void initState() {
     super.initState();
     _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 2));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncAnimation();
+      ref.listenManual(deviceProvider.select((s) => s.mode), (prev, next) {
+        _syncAnimation(next);
+      });
+    });
+  }
+
+  void _syncAnimation([int? mode]) {
+    final m = mode ?? ref.read(deviceProvider).mode;
+    if (m >= 1 && m <= 3 && !_ctrl.isAnimating) {
+      _ctrl.repeat();
+    } else if ((m == 0 || m == 4) && _ctrl.isAnimating) {
+      _ctrl.stop();
+      _ctrl.value = 0;
+    }
   }
 
   @override
@@ -39,14 +55,7 @@ class _EffectTabState extends ConsumerState<EffectTab>
     final bottomPad =
         MediaQuery.of(context).padding.bottom + kBottomNavigationBarHeight + 20;
 
-    // Single animation controller shared across all effect previews
     final activeMode = s.mode;
-    if (activeMode >= 1 && activeMode <= 3 && !_ctrl.isAnimating) {
-      _ctrl.repeat();
-    } else if ((activeMode == 0 || activeMode == 4) && _ctrl.isAnimating) {
-      _ctrl.stop();
-      _ctrl.value = 0;
-    }
 
     final effects = [
       _EffectDef(0, t.modeStatic, Icons.light_mode_rounded, t.descStatic, const Color(0xFFFFD93D)),

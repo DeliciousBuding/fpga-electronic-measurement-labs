@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,8 +7,15 @@ import '../providers/ble_provider.dart';
 import '../providers/device_provider.dart';
 import 'shared/ble_widgets.dart';
 
-class SceneTab extends ConsumerWidget {
+class SceneTab extends ConsumerStatefulWidget {
   const SceneTab({super.key});
+
+  @override
+  ConsumerState<SceneTab> createState() => _SceneTabState();
+}
+
+class _SceneTabState extends ConsumerState<SceneTab> {
+  Timer? _statusQueryTimer;
 
   static const _scenes = [
     (Icons.wb_twilight_rounded, 0xFFEF4444, 'sunset', [0xFFFF6B35, 0xFFFFD700]),
@@ -19,6 +27,12 @@ class SceneTab extends ConsumerWidget {
     (Icons.wb_sunny_rounded, 0xFFFBBF24, 'warmSun', [0xFFFFE4B5, 0xFFFFD700]),
     (Icons.bolt_rounded, 0xFFE879F9, 'lightning', [0xFFE040FB, 0xFF00E5FF]),
   ];
+
+  @override
+  void dispose() {
+    _statusQueryTimer?.cancel();
+    super.dispose();
+  }
 
   String _sceneName(AppLocalizations t, String key) => switch (key) {
         'sunset' => t.sceneSunset,
@@ -33,7 +47,7 @@ class SceneTab extends ConsumerWidget {
       };
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final ble = ref.read(bleServiceProvider);
     final s = ref.watch(deviceProvider);
     final cs = Theme.of(context).colorScheme;
@@ -46,9 +60,6 @@ class SceneTab extends ConsumerWidget {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
           title: Text(t.sceneTitle),
-          centerTitle: false,
-          elevation: 0,
-          scrolledUnderElevation: 1,
           actions: const [BleAction()]),
       body: ListView(
         padding: EdgeInsets.fromLTRB(16, topPad, 16, bottomPad),
@@ -97,7 +108,8 @@ class SceneTab extends ConsumerWidget {
                         content: Text(t.sceneLoaded(name)),
                         duration: const Duration(seconds: 1),
                         behavior: SnackBarBehavior.floating));
-                    Future.delayed(
+                    _statusQueryTimer?.cancel();
+                    _statusQueryTimer = Timer(
                         const Duration(milliseconds: 300), () => ble.queryStatus());
                   },
                   onLongPress: () {
