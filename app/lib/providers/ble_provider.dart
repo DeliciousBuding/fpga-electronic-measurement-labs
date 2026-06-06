@@ -328,13 +328,14 @@ class BLEService {
 
   Future<void> queryStatus() async {
     _resetParser();
+    await _send(Uint8List.fromList([0xFF]));
+    // Switch to collecting AFTER sending to avoid consuming stale ACK bytes
     _parseState = _ParseState.collectingStatus;
     _statusTimeout = Timer(const Duration(seconds: 2), () {
       _log.w('Status timeout (${_statusBuffer.length}/5 bytes)');
       _addDebug('Status timeout (${_statusBuffer.length}/5)');
       _resetParser();
     });
-    await _send(Uint8List.fromList([0xFF]));
   }
 
   // --- utilities ---
