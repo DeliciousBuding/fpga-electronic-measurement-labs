@@ -17,8 +17,6 @@ sealed class BleEvent {
 class BleAckEvent extends BleEvent {
   final bool success;
   BleAckEvent(this.success);
-
-  String get label => success ? 'ACK OK' : 'ACK ERR';
 }
 
 class BleStatusEvent extends BleEvent {
@@ -34,17 +32,12 @@ class BleLogEvent extends BleEvent {
   final String direction; // TX | RX
   final String hex;
   BleLogEvent(this.direction, this.hex);
-
-  String get label => '$direction $hex';
 }
 
 class BleConnectionEvent extends BleEvent {
   final bool connected;
   final String? name;
   BleConnectionEvent(this.connected, [this.name]);
-
-  String get label =>
-      connected ? 'Connected${name != null ? ": $name" : ""}' : 'Disconnected';
 }
 
 // --- BLE service ---

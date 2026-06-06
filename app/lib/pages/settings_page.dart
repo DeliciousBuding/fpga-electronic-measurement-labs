@@ -35,7 +35,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       body: ListView(padding: EdgeInsets.fromLTRB(16, topPad, 16, bottomPad), children: [
         _SectionHeader(icon: Icons.brush_rounded, title: t.settingsAppearance),
         const SizedBox(height: 8),
-        Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        Card(
           child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
             Row(children: [Icon(Icons.language_rounded, size: 20, color: cs.primary), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(t.settingsLanguage, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)), const SizedBox(height: 1), Text(isZh ? t.settingsLangZh : t.settingsLangEn, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant))])), SegmentedButton<String>(segments: [ButtonSegment(value: 'zh', label: Text(t.settingsLangZh)), ButtonSegment(value: 'en', label: Text(t.settingsLangEn))], selected: {isZh ? 'zh' : 'en'}, style: ButtonStyle(visualDensity: VisualDensity.compact, shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))), onSelectionChanged: (v) => ref.read(localeProvider.notifier).set(v.first == 'zh' ? const Locale('zh') : const Locale('en')))]),
             const Divider(height: 24),
@@ -51,7 +51,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         const SizedBox(height: 24),
         _SectionHeader(icon: Icons.info_rounded, title: t.settingsAbout),
         const SizedBox(height: 8),
-        Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        Card(
           child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
             Row(children: [
               Container(width: 48, height: 48, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: cs.primary), child: const Icon(Icons.bluetooth_rounded, color: Colors.white, size: 26)),
@@ -83,7 +83,7 @@ class _BleStatusCard extends StatelessWidget {
     return ValueListenableBuilder<bool>(
       valueListenable: ble.isConnected,
       builder: (context, connected, _) => Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        
         child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
           Row(children: [
             Container(width: 40, height: 40, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: connected ? cs.primaryContainer : cs.surfaceContainerLowest), child: Icon(connected ? Icons.bluetooth_connected_rounded : Icons.bluetooth_disabled_rounded, color: connected ? cs.primary : cs.onSurfaceVariant, size: 22)),
@@ -112,7 +112,7 @@ class _DebugLogCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final t = AppLocalizations.of(context)!;
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      
       child: Column(children: [
         InkWell(
           borderRadius: expanded ? const BorderRadius.vertical(top: Radius.circular(12)) : BorderRadius.circular(12),
