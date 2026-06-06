@@ -66,6 +66,7 @@ class BLEService {
   _ParseState _parseState = _ParseState.idle;
   final _statusBuffer = <int>[];
   Timer? _statusTimeout;
+  Completer<void>? _writeLock;
 
   // circular debug log
   final _debugLog = <String>[];
@@ -115,6 +116,7 @@ class BLEService {
         await connect(device);
       } catch (e) {
         _addDebug('Auto-reconnect skipped: $e');
+        _scheduleReconnect();
       }
     }
   }
@@ -272,12 +274,20 @@ class BLEService {
       _addDebug('TX skipped (no char): ${_hex(data)}');
       return;
     }
+    while (_writeLock != null) {
+      try { await _writeLock!.future; } catch (_) {}
+    }
+    _writeLock = Completer<void>();
     try {
       await _txChar!.write(data, withoutResponse: true);
       _addDebug('TX: ${_hex(data)}');
     } catch (e) {
       _log.e('TX error: $e');
       _addDebug('TX error: $e');
+    } finally {
+      final c = _writeLock;
+      _writeLock = null;
+      c?.complete();
     }
   }
 

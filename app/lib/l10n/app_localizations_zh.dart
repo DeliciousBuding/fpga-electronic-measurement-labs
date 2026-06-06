@@ -216,6 +216,8 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsLangZh => '中文';
+  @override
+  String get settingsLangEn => '英语';
 
   @override
   String get settingsTheme => '主题';

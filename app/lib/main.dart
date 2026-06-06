@@ -37,7 +37,7 @@ class RgbControllerApp extends ConsumerWidget {
           darkScheme = ColorScheme.fromSeed(seedColor: themeState.seedColor, brightness: Brightness.dark, dynamicSchemeVariant: themeState.schemeVariant);
         }
         return MaterialApp(
-          title: 'RGB Controller',
+          onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
           debugShowCheckedModeBanner: false,
           locale: locale,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -48,6 +48,7 @@ class RgbControllerApp extends ConsumerWidget {
             useMaterial3: true,
             fontFamily: themeState.fontFamilyName,
             pageTransitionsTheme: const PageTransitionsTheme(builders: {TargetPlatform.android: CupertinoPageTransitionsBuilder(), TargetPlatform.iOS: CupertinoPageTransitionsBuilder()}),
+            appBarTheme: const AppBarTheme(centerTitle: false, elevation: 0, scrolledUnderElevation: 1),
             cardTheme: CardThemeData(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), color: lightScheme.surfaceContainerLow, margin: EdgeInsets.zero),
             navigationBarTheme: NavigationBarThemeData(indicatorShape: const StadiumBorder(), indicatorColor: lightScheme.secondaryContainer, labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected),
           ),
@@ -55,6 +56,7 @@ class RgbControllerApp extends ConsumerWidget {
             colorScheme: darkScheme,
             useMaterial3: true,
             fontFamily: themeState.fontFamilyName,
+            appBarTheme: const AppBarTheme(centerTitle: false, elevation: 0, scrolledUnderElevation: 1),
             pageTransitionsTheme: const PageTransitionsTheme(builders: {TargetPlatform.android: CupertinoPageTransitionsBuilder(), TargetPlatform.iOS: CupertinoPageTransitionsBuilder()}),
             cardTheme: CardThemeData(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), color: darkScheme.surfaceContainerLow, margin: EdgeInsets.zero),
             navigationBarTheme: NavigationBarThemeData(indicatorShape: const StadiumBorder(), indicatorColor: darkScheme.secondaryContainer, labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected),
