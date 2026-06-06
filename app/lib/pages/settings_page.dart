@@ -4,7 +4,7 @@ import '../l10n/app_localizations.dart';
 import '../providers/theme_provider.dart';
 import '../providers/locale_provider.dart';
 import '../providers/ble_provider.dart';
-import 'scanner_page.dart';
+import 'shared/ble_widgets.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -30,9 +30,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(t.navSettings),
-        actions: [Padding(padding: const EdgeInsets.only(right: 4), child: ValueListenableBuilder(valueListenable: ble.isConnected, builder: (context, connected, _) => IconButton(icon: connected ? Badge(isLabelVisible: true, smallSize: 8, child: Icon(Icons.bluetooth_connected_rounded, color: cs.primary)) : Icon(Icons.bluetooth_rounded, color: cs.onSurfaceVariant.withAlpha(150)), tooltip: connected ? t.bleTooltipConnected(ble.deviceName) : t.bleTooltipDisconnected, onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerPage())))))],
+        actions: const [BleAction()],
       ),
       body: ListView(padding: EdgeInsets.fromLTRB(16, topPad, 16, bottomPad), children: [
+        const BleBanner(),
+        const SizedBox(height: 12),
         _SectionHeader(icon: Icons.brush_rounded, title: t.settingsAppearance),
         const SizedBox(height: 8),
         Card(
