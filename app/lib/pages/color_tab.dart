@@ -191,32 +191,34 @@ class _CompactLedStrip extends StatelessWidget {
           // Row 2: 8 LED dots in a single row
           AnimatedBuilder(
             animation: ctrl,
-            builder: (context, _) => SizedBox(
-              height: 44,
-              child: Row(
-                children: List.generate(8, (i) {
-                  final c = _dotColor(i);
-                  final lit = c.computeLuminance() > 0.06;
-                  return Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 2),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: lit ? c : cs.surfaceContainerLowest,
-                          boxShadow: lit
-                              ? [BoxShadow(color: c.withAlpha(100), blurRadius: 12, spreadRadius: 2)]
-                              : null,
-                          border: Border.all(
-                              color: lit ? Colors.white.withAlpha(50) : cs.outlineVariant.withAlpha(80),
-                              width: lit ? 1.5 : 1),
-                        ),
-                      ),
+            builder: (context, _) => Column(
+              children: [for (var row = 0; row < 2; row++)
+                Row(children: [for (var col = 0; col < 4; col++)
+                  Expanded(child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: Builder(builder: (_) {
+                        final i = row * 4 + col;
+                        final c = _dotColor(i);
+                        final bright = c.computeLuminance() > 0.06;
+                        return Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: c,
+                            boxShadow: bright
+                                ? [BoxShadow(color: c.withAlpha(100), blurRadius: 12, spreadRadius: 2)]
+                                : null,
+                            border: Border.all(
+                                color: bright ? Colors.white.withAlpha(50) : cs.outline.withAlpha(120),
+                                width: bright ? 1.5 : 1),
+                          ),
+                        );
+                      }),
                     ),
-                  );
-                }),
-              ),
+                  )),
+                ]),
+              ],
             ),
           ),
         ]),
