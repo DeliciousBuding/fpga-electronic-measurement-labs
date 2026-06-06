@@ -66,25 +66,25 @@ class _SceneTabState extends ConsumerState<SceneTab> {
         children: [
           const SizedBox(height: 4),
           const BleBanner(),
-          const SizedBox(height: 12),
+          const SizedBox(height: 6),
           Row(children: [
-            Icon(Icons.info_outline_rounded, size: 16, color: cs.onSurfaceVariant),
-            const SizedBox(width: 6),
+            Icon(Icons.info_outline_rounded, size: 14, color: cs.onSurfaceVariant),
+            const SizedBox(width: 5),
             Text(t.sceneHint,
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall
                     ?.copyWith(color: cs.onSurfaceVariant))
           ]),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.15),
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 3.0),
             itemCount: _scenes.length,
             itemBuilder: (_, i) {
               final sc = _scenes[i];
@@ -122,52 +122,54 @@ class _SceneTabState extends ConsumerState<SceneTab> {
                         behavior: SnackBarBehavior.floating));
                   },
                   child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Stack(clipBehavior: Clip.none, children: [
-                            Container(
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    gradient: LinearGradient(
-                                        colors: gradientColors,
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight)),
-                                child: Icon(sc.$1,
-                                    color: Colors.white.withAlpha(220), size: 24)),
-                            if (saved)
-                              Positioned(
-                                  right: -3,
-                                  top: -3,
-                                  child: Container(
-                                      width: 18,
-                                      height: 18,
-                                      decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: accent,
-                                          border: Border.all(
-                                              color: Colors.white, width: 1.5)),
-                                      child: const Icon(Icons.check_rounded,
-                                          color: Colors.white, size: 11))),
-                          ]),
-                          const SizedBox(height: 8),
-                          Text(name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelMedium
-                                  ?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: cs.onSurface)),
-                        ]),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                      Stack(clipBehavior: Clip.none, children: [
+                        Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                gradient: LinearGradient(
+                                    colors: gradientColors,
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight)),
+                            child: Icon(sc.$1,
+                                color: Colors.white.withAlpha(220), size: 18)),
+                        if (saved)
+                          Positioned(
+                              right: -3,
+                              top: -3,
+                              child: Container(
+                                  width: 16,
+                                  height: 16,
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: accent,
+                                      border: Border.all(
+                                          color: Colors.white, width: 1.5)),
+                                  child: const Icon(Icons.check_rounded,
+                                      color: Colors.white, size: 10))),
+                      ]),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(name,
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: cs.onSurface)),
+                      ),
+                    ]),
                   ),
                 ),
               );
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
         ],
       ),
     );

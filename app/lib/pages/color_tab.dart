@@ -66,15 +66,14 @@ class _ColorTabState extends ConsumerState<ColorTab>
       body: ListView(
         padding: EdgeInsets.fromLTRB(16, topPad, 16, bottomPad),
         children: [
-          const SizedBox(height: 2),
           const BleBanner(),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           // ── Compact LED strip + hex + mode ──
           _CompactLedStrip(
             ctrl: _ctrl, color: color,
             mode: s.mode, brightness: s.brightness,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           SliderCard(
               label: t.brightness,
               icon: Icons.brightness_6_rounded,
@@ -86,9 +85,9 @@ class _ColorTabState extends ConsumerState<ColorTab>
                 ref.read(deviceProvider.notifier).setBrightness(iv);
                 ble.setBrightnessThrottled(iv);
               }),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _RgbSliders(r: s.r, g: s.g, b: s.b, ble: ble, ref: ref),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _PresetColors(
               r: s.r, g: s.g, b: s.b,
               onPick: (r, g, b) {
@@ -96,13 +95,13 @@ class _ColorTabState extends ConsumerState<ColorTab>
                 ref.read(deviceProvider.notifier).setColor(r, g, b);
                 ble.setColor(r, g, b);
               }),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _QuickActions(onColor: (r, g, b) {
             HapticFeedback.lightImpact();
             ref.read(deviceProvider.notifier).setColor(r, g, b);
             ble.setColor(r, g, b);
           }),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
         ],
       ),
     );
@@ -158,7 +157,7 @@ class _CompactLedStrip extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(children: [
           // Row 1: hex + mode badges
           Row(children: [
@@ -324,7 +323,7 @@ class _PresetColors extends StatelessWidget {
     final sel = _findPresetIndex(r, g, b);
     return Card(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             Icon(Icons.palette_rounded, size: 16, color: cs.primary),
@@ -333,7 +332,7 @@ class _PresetColors extends StatelessWidget {
           ]),
           const SizedBox(height: 10),
           Wrap(
-            spacing: 10, runSpacing: 10,
+            spacing: 8, runSpacing: 8,
             children: List.generate(presetColors.length, (i) {
               final cl = Color(presetColors[i]);
               final pr = (cl.r * 255).round();
@@ -344,8 +343,8 @@ class _PresetColors extends StatelessWidget {
                 onTap: () => onPick(pr, pg, pb),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  width: active ? 40 : 36,
-                  height: active ? 40 : 36,
+                  width: active ? 36 : 32,
+                  height: active ? 36 : 32,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: cl,
@@ -376,7 +375,7 @@ class _QuickActions extends StatelessWidget {
     final t = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             Icon(Icons.flash_on_rounded, size: 16, color: cs.primary),
