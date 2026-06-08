@@ -9,6 +9,7 @@ param(
   [switch]$ReportDraft,
   [switch]$ApkQuality,
   [switch]$EvidenceManifest,
+  [switch]$DeliverablePackage,
   [switch]$FieldEvidence,
   [switch]$RequireFieldEvidence,
   [switch]$DeviceSmoke,
@@ -73,6 +74,7 @@ $quartusMapScript = Join-Path $PSScriptRoot "verify-fpga-quartus.ps1"
 $reportDraftScript = Join-Path $PSScriptRoot "verify-report-draft.ps1"
 $apkQualityScript = Join-Path $PSScriptRoot "verify-android-apk.ps1"
 $evidenceManifestScript = Join-Path $PSScriptRoot "write-local-evidence-manifest.ps1"
+$deliverablePackageScript = Join-Path $PSScriptRoot "verify-deliverable-package.ps1"
 $fieldEvidenceScript = Join-Path $PSScriptRoot "verify-field-evidence.ps1"
 $buildAndroidScript = Join-Path $PSScriptRoot "build-android.ps1"
 $deviceSmokeScript = Join-Path $PSScriptRoot "device-smoke.ps1"
@@ -89,6 +91,7 @@ if ($AllLocal) {
   $ReportDraft = $true
   $ApkQuality = $true
   $EvidenceManifest = $true
+  $DeliverablePackage = $true
 }
 
 if (($Device -in $personalDevices) -and !$AllowPersonalDevice -and $DeviceSmoke) {
@@ -192,6 +195,18 @@ if ($EvidenceManifest) {
     & powershell -NoProfile -ExecutionPolicy Bypass -File $evidenceManifestScript
     if ($LASTEXITCODE -ne 0) {
       throw "write-local-evidence-manifest.ps1 failed with exit code $LASTEXITCODE"
+    }
+  }
+}
+
+if ($DeliverablePackage) {
+  if (!(Test-Path -LiteralPath $deliverablePackageScript)) {
+    throw "Deliverable package verification script not found: $deliverablePackageScript"
+  }
+  Invoke-Step "deliverable package verification" {
+    & powershell -NoProfile -ExecutionPolicy Bypass -File $deliverablePackageScript
+    if ($LASTEXITCODE -ne 0) {
+      throw "verify-deliverable-package.ps1 failed with exit code $LASTEXITCODE"
     }
   }
 }

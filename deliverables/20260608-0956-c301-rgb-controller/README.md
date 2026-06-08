@@ -18,7 +18,7 @@ GitHub Release:
 
 Verification summary:
 
-- `tools/verify-app.ps1 -AllLocal` passed before APK version bump: analyze clean, Flutter tests 60/60, WebVisualQA, ModelSim, Quartus A&S, report draft, APK quality, evidence manifest.
+- `tools/verify-app.ps1 -AllLocal` passed before APK version bump: analyze clean, Flutter tests 61/61, WebVisualQA, ModelSim, Quartus A&S, report draft, APK quality, evidence manifest.
 - Full Quartus compile refreshed the SOF on 2026-06-08 09:52:32: 0 errors, 3 warnings.
 - `tools/verify-app.ps1 -SkipAnalyze -SkipTests -ReportDraft -ApkQuality -EvidenceManifest` passed after APK version bump.
 - APK quality passed: 21.81 MB / 35 MB, version `0.1.0+2026062409`, target ABI `arm64-v8a`.

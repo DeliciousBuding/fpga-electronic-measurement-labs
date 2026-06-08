@@ -120,7 +120,7 @@ $markdown = Get-Content -LiteralPath $markdownPath -Raw -Encoding UTF8
 $checklist = Get-Content -LiteralPath $checklistPath -Raw -Encoding UTF8
 
 $requiredMarkdownText = @(
-  "60/60 PASS",
+  "61/61 PASS",
   "WebVisualQA",
   "App/Web",
   "CH9143 RGB Controller",
@@ -143,7 +143,7 @@ $requiredChecklistText = @(
   "BLE",
   "SignalTap",
   "field-evidence",
-  "60/60 PASS"
+  "61/61 PASS"
 )
 foreach ($text in $requiredChecklistText) {
   Assert-TextContains -Text $checklist -Pattern $text -Name "Submission checklist"
@@ -183,7 +183,7 @@ try {
 }
 
 $docxText = Invoke-ExternalText -Tool "pandoc" -Arguments @($docxPath, "-t", "plain")
-foreach ($text in @("App/Web", "60/60", "20260608", "CH9143 RGB Controller", "field-evidence")) {
+foreach ($text in @("App/Web", "61/61", "20260608", "CH9143 RGB Controller", "field-evidence")) {
   Assert-TextContains -Text $docxText -Pattern $text -Name "DOCX draft"
 }
 
@@ -198,7 +198,7 @@ if ($pages -lt 8) {
 }
 
 $pdfText = Invoke-ExternalText -Tool "pdftotext" -Arguments @($pdfPath, "-")
-foreach ($text in @("App/Web", "60/60", "20260608", "CH9143 RGB Controller", "field-evidence")) {
+foreach ($text in @("App/Web", "61/61", "20260608", "CH9143 RGB Controller", "field-evidence")) {
   Assert-TextContains -Text $pdfText -Pattern $text -Name "PDF draft"
 }
 
