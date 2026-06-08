@@ -31,6 +31,28 @@ void main() {
     expect(effectTab, isNot(contains('Duration(seconds: 2)')));
   });
 
+  test('motion helpers respect system reduced-animation preference', () {
+    final design = File('lib/theme/app_design.dart').readAsStringSync();
+    final main = File('lib/main.dart').readAsStringSync();
+    final shell = File('lib/pages/main_shell.dart').readAsStringSync();
+
+    expect(design, contains('static bool reduced(BuildContext context)'));
+    expect(design, contains('MediaQuery.disableAnimationsOf(context)'));
+    expect(design, contains('static Duration duration('));
+    expect(design, contains('static Curve curve('));
+    expect(main, contains('AppMotion.duration('));
+    expect(main, contains('AppMotion.curve('));
+    expect(shell, contains('AppMotion.duration('));
+    expect(shell, contains('AppMotion.curve('));
+  });
+
+  test('BLE gate starts motion-aware initialization after first frame', () {
+    final main = File('lib/main.dart').readAsStringSync();
+
+    expect(main, contains('WidgetsBinding.instance.addPostFrameCallback'));
+    expect(main, isNot(contains('    _initBLE();')));
+  });
+
   test('connection banner avoids layout-size animation during scroll', () {
     final source = File('lib/pages/shared/ble_widgets.dart').readAsStringSync();
 

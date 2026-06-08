@@ -32,6 +32,18 @@ class AppMotion {
   static const Curve standard = Curves.easeOutCubic;
   static const Curve emphasized = Curves.easeInOutCubicEmphasized;
   static const Curve scroll = Curves.decelerate;
+
+  static bool reduced(BuildContext context) {
+    return MediaQuery.disableAnimationsOf(context);
+  }
+
+  static Duration duration(BuildContext context, Duration value) {
+    return reduced(context) ? Duration.zero : value;
+  }
+
+  static Curve curve(BuildContext context, Curve value) {
+    return reduced(context) ? Curves.linear : value;
+  }
 }
 
 class SmoothScrollBehavior extends ScrollBehavior {

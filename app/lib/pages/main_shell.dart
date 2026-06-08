@@ -130,6 +130,7 @@ class _MainShellState extends ConsumerState<MainShell> {
     final barVis = ref.watch(barVisibilityProvider);
     final visibility = hideBar ? barVis : 1.0;
     final barHidden = visibility == 0.0;
+    final barDuration = AppMotion.duration(context, AppMotion.normal);
     final t = AppLocalizations.of(context)!;
     final items = [
       _BottomNavItem(
@@ -193,23 +194,27 @@ class _MainShellState extends ConsumerState<MainShell> {
           ignoring: barHidden,
           child: AnimatedSlide(
             offset: barHidden ? const Offset(0, 1) : Offset.zero,
-            duration: AppMotion.normal,
-            curve: AppMotion.emphasized,
+            duration: barDuration,
+            curve: AppMotion.curve(context, AppMotion.emphasized),
             child: AnimatedOpacity(
               opacity: visibility,
-              duration: AppMotion.normal,
-              curve: AppMotion.standard,
+              duration: barDuration,
+              curve: AppMotion.curve(context, AppMotion.standard),
               child: RepaintBoundary(
                 child: _IconBottomBar(
                   selectedIndex: _index,
                   items: items,
                   onSelected: (i) {
                     _showBarIfHidden();
-                    _pageCtrl.animateToPage(
-                      i,
-                      duration: AppMotion.page,
-                      curve: AppMotion.emphasized,
-                    );
+                    if (AppMotion.reduced(context)) {
+                      _pageCtrl.jumpToPage(i);
+                    } else {
+                      _pageCtrl.animateToPage(
+                        i,
+                        duration: AppMotion.duration(context, AppMotion.page),
+                        curve: AppMotion.curve(context, AppMotion.emphasized),
+                      );
+                    }
                     setState(() => _index = i);
                   },
                 ),
@@ -284,8 +289,8 @@ class _IconBottomBarButton extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final icon = ExcludeSemantics(
       child: AnimatedScale(
-        duration: AppMotion.fast,
-        curve: AppMotion.standard,
+        duration: AppMotion.duration(context, AppMotion.fast),
+        curve: AppMotion.curve(context, AppMotion.standard),
         scale: selected ? 1.08 : 1.0,
         child: Icon(
           selected ? item.selectedIcon : item.icon,

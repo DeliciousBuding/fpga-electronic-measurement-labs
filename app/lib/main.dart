@@ -178,13 +178,35 @@ class _BLEGateState extends ConsumerState<BLEGate>
     );
     _splashFade = CurvedAnimation(parent: _splashCtrl, curve: Curves.easeOut);
     _splashCtrl.forward();
-    _initBLE();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _initBLE();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _splashCtrl.duration = AppMotion.duration(
+      context,
+      const Duration(milliseconds: 800),
+    );
+    _splashFade = CurvedAnimation(
+      parent: _splashCtrl,
+      curve: AppMotion.curve(context, Curves.easeOut),
+    );
   }
 
   Future<void> _initBLE() async {
     // Show main UI immediately, init BLE in background
     if (mounted) {
-      await _splashCtrl.reverse();
+      await _splashCtrl.animateBack(
+        0.0,
+        duration: AppMotion.duration(
+          context,
+          const Duration(milliseconds: 240),
+        ),
+        curve: AppMotion.curve(context, Curves.easeOut),
+      );
       setState(() => _ready = true);
     }
     try {
