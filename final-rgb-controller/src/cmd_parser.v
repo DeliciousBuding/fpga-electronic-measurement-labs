@@ -40,7 +40,7 @@ module cmd_parser (
     reg [7:0]  arg_buf [0:2];
     reg [2:0]  send_len;
     reg [2:0]  send_idx;
-    reg [7:0]  send_data [0:5];
+    reg [7:0]  send_data [0:4];
     reg        is_error;
     reg        is_query;
 

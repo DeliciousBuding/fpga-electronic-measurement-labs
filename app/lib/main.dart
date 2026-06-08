@@ -8,15 +8,18 @@ import 'providers/theme_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/ble_provider.dart';
 import 'pages/main_shell.dart';
+import 'theme/app_design.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   final prefs = await SharedPreferences.getInstance();
-  runApp(ProviderScope(
-    overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
-    child: const RgbControllerApp(),
-  ));
+  runApp(
+    ProviderScope(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      child: const RgbControllerApp(),
+    ),
+  );
 }
 
 class RgbControllerApp extends ConsumerWidget {
@@ -29,16 +32,35 @@ class RgbControllerApp extends ConsumerWidget {
     return DynamicColorBuilder(
       builder: (lightDynamic, darkDynamic) {
         ColorScheme lightScheme, darkScheme;
-        if (themeState.useDynamicColor && lightDynamic != null && darkDynamic != null) {
-          lightScheme = ColorScheme.fromSeed(seedColor: lightDynamic.primary, brightness: Brightness.light, dynamicSchemeVariant: themeState.schemeVariant);
-          darkScheme = ColorScheme.fromSeed(seedColor: darkDynamic.primary, brightness: Brightness.dark, dynamicSchemeVariant: themeState.schemeVariant);
+        if (themeState.useDynamicColor &&
+            lightDynamic != null &&
+            darkDynamic != null) {
+          lightScheme = ColorScheme.fromSeed(
+            seedColor: lightDynamic.primary,
+            brightness: Brightness.light,
+            dynamicSchemeVariant: themeState.schemeVariant,
+          );
+          darkScheme = ColorScheme.fromSeed(
+            seedColor: darkDynamic.primary,
+            brightness: Brightness.dark,
+            dynamicSchemeVariant: themeState.schemeVariant,
+          );
         } else {
-          lightScheme = ColorScheme.fromSeed(seedColor: themeState.seedColor, brightness: Brightness.light, dynamicSchemeVariant: themeState.schemeVariant);
-          darkScheme = ColorScheme.fromSeed(seedColor: themeState.seedColor, brightness: Brightness.dark, dynamicSchemeVariant: themeState.schemeVariant);
+          lightScheme = ColorScheme.fromSeed(
+            seedColor: themeState.seedColor,
+            brightness: Brightness.light,
+            dynamicSchemeVariant: themeState.schemeVariant,
+          );
+          darkScheme = ColorScheme.fromSeed(
+            seedColor: themeState.seedColor,
+            brightness: Brightness.dark,
+            dynamicSchemeVariant: themeState.schemeVariant,
+          );
         }
         return MaterialApp(
           onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
           debugShowCheckedModeBanner: false,
+          scrollBehavior: const SmoothScrollBehavior(),
           locale: locale,
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -47,25 +69,84 @@ class RgbControllerApp extends ConsumerWidget {
             colorScheme: lightScheme,
             useMaterial3: true,
             fontFamily: themeState.fontFamilyName,
-            pageTransitionsTheme: const PageTransitionsTheme(builders: {TargetPlatform.android: CupertinoPageTransitionsBuilder(), TargetPlatform.iOS: CupertinoPageTransitionsBuilder()}),
-            appBarTheme: AppBarTheme(centerTitle: false, elevation: 0, scrolledUnderElevation: 1, backgroundColor: lightScheme.surface.withAlpha(220), foregroundColor: lightScheme.onSurface),
-            cardTheme: CardThemeData(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), color: lightScheme.surfaceContainerLow, margin: EdgeInsets.zero),
-            navigationBarTheme: NavigationBarThemeData(indicatorShape: const StadiumBorder(), indicatorColor: lightScheme.secondaryContainer, labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected),
+            pageTransitionsTheme: const PageTransitionsTheme(
+              builders: {
+                TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+                TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+              },
+            ),
+            appBarTheme: AppBarTheme(
+              centerTitle: false,
+              elevation: 0,
+              scrolledUnderElevation: 1,
+              backgroundColor: lightScheme.surface,
+              foregroundColor: lightScheme.onSurface,
+              surfaceTintColor: Colors.transparent,
+            ),
+            cardTheme: CardThemeData(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadii.lg),
+              ),
+              color: lightScheme.surfaceContainerLow,
+              margin: EdgeInsets.zero,
+            ),
+            navigationBarTheme: NavigationBarThemeData(
+              indicatorShape: const StadiumBorder(),
+              indicatorColor: lightScheme.secondaryContainer,
+              labelBehavior:
+                  NavigationDestinationLabelBehavior.onlyShowSelected,
+            ),
           ),
           darkTheme: ThemeData(
             colorScheme: darkScheme,
             useMaterial3: true,
             fontFamily: themeState.fontFamilyName,
-            appBarTheme: AppBarTheme(centerTitle: false, elevation: 0, scrolledUnderElevation: 1, backgroundColor: darkScheme.surface.withAlpha(220), foregroundColor: darkScheme.onSurface),
-            pageTransitionsTheme: const PageTransitionsTheme(builders: {TargetPlatform.android: CupertinoPageTransitionsBuilder(), TargetPlatform.iOS: CupertinoPageTransitionsBuilder()}),
-            cardTheme: CardThemeData(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), color: darkScheme.surfaceContainerLow, margin: EdgeInsets.zero),
-            navigationBarTheme: NavigationBarThemeData(indicatorShape: const StadiumBorder(), indicatorColor: darkScheme.secondaryContainer, labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected),
+            appBarTheme: AppBarTheme(
+              centerTitle: false,
+              elevation: 0,
+              scrolledUnderElevation: 1,
+              backgroundColor: darkScheme.surface,
+              foregroundColor: darkScheme.onSurface,
+              surfaceTintColor: Colors.transparent,
+            ),
+            pageTransitionsTheme: const PageTransitionsTheme(
+              builders: {
+                TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+                TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+              },
+            ),
+            cardTheme: CardThemeData(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadii.lg),
+              ),
+              color: darkScheme.surfaceContainerLow,
+              margin: EdgeInsets.zero,
+            ),
+            navigationBarTheme: NavigationBarThemeData(
+              indicatorShape: const StadiumBorder(),
+              indicatorColor: darkScheme.secondaryContainer,
+              labelBehavior:
+                  NavigationDestinationLabelBehavior.onlyShowSelected,
+            ),
           ),
           builder: (context, child) {
             final brightness = Theme.of(context).brightness;
-            final iconBrightness = brightness == Brightness.light ? Brightness.dark : Brightness.light;
+            final iconBrightness = brightness == Brightness.light
+                ? Brightness.dark
+                : Brightness.light;
             return AnnotatedRegion<SystemUiOverlayStyle>(
-              value: SystemUiOverlayStyle(statusBarColor: Colors.transparent, statusBarIconBrightness: iconBrightness, systemNavigationBarColor: Colors.transparent, systemNavigationBarIconBrightness: iconBrightness, systemNavigationBarDividerColor: Colors.transparent.withAlpha(1), systemNavigationBarContrastEnforced: false),
+              value: SystemUiOverlayStyle(
+                statusBarColor: Colors.transparent,
+                statusBarIconBrightness: iconBrightness,
+                systemNavigationBarColor: Colors.transparent,
+                systemNavigationBarIconBrightness: iconBrightness,
+                systemNavigationBarDividerColor: Colors.transparent.withAlpha(
+                  1,
+                ),
+                systemNavigationBarContrastEnforced: false,
+              ),
               child: child!,
             );
           },
@@ -82,7 +163,8 @@ class BLEGate extends ConsumerStatefulWidget {
   ConsumerState<BLEGate> createState() => _BLEGateState();
 }
 
-class _BLEGateState extends ConsumerState<BLEGate> with SingleTickerProviderStateMixin {
+class _BLEGateState extends ConsumerState<BLEGate>
+    with SingleTickerProviderStateMixin {
   bool _ready = false;
   late AnimationController _splashCtrl;
   late Animation<double> _splashFade;
@@ -90,7 +172,10 @@ class _BLEGateState extends ConsumerState<BLEGate> with SingleTickerProviderStat
   @override
   void initState() {
     super.initState();
-    _splashCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
+    _splashCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
     _splashFade = CurvedAnimation(parent: _splashCtrl, curve: Curves.easeOut);
     _splashCtrl.forward();
     _initBLE();
@@ -103,14 +188,20 @@ class _BLEGateState extends ConsumerState<BLEGate> with SingleTickerProviderStat
       setState(() => _ready = true);
     }
     try {
-      await ref.read(bleServiceProvider).init().timeout(const Duration(seconds: 10));
+      await ref
+          .read(bleServiceProvider)
+          .init()
+          .timeout(const Duration(seconds: 10));
     } catch (_) {
       // BLE init failure is non-fatal
     }
   }
 
   @override
-  void dispose() { _splashCtrl.dispose(); super.dispose(); }
+  void dispose() {
+    _splashCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,17 +213,48 @@ class _BLEGateState extends ConsumerState<BLEGate> with SingleTickerProviderStat
           child: Center(
             child: FadeTransition(
               opacity: _splashFade,
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Container(
-                  width: 80, height: 80,
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: cs.primaryContainer, boxShadow: [BoxShadow(color: cs.primary.withAlpha(60), blurRadius: 32, spreadRadius: 8)]),
-                  child: Icon(Icons.bluetooth_rounded, size: 40, color: cs.primary),
-                ),
-                const SizedBox(height: 24),
-                Text(AppLocalizations.of(context)!.appTitle, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                const SizedBox(height: 32),
-                SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary)),
-              ]),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: cs.primaryContainer,
+                      boxShadow: [
+                        BoxShadow(
+                          color: cs.primary.withAlpha(60),
+                          blurRadius: 32,
+                          spreadRadius: 8,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.bluetooth_rounded,
+                      size: 40,
+                      color: cs.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    AppLocalizations.of(context)!.appTitle,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: cs.primary,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -32,14 +32,13 @@ class ThemeState {
     bool? useDynamicColor,
     AppFontFamily? fontFamily,
     DynamicSchemeVariant? schemeVariant,
-  }) =>
-      ThemeState(
-        mode: mode ?? this.mode,
-        seedColor: seedColor ?? this.seedColor,
-        useDynamicColor: useDynamicColor ?? this.useDynamicColor,
-        fontFamily: fontFamily ?? this.fontFamily,
-        schemeVariant: schemeVariant ?? this.schemeVariant,
-      );
+  }) => ThemeState(
+    mode: mode ?? this.mode,
+    seedColor: seedColor ?? this.seedColor,
+    useDynamicColor: useDynamicColor ?? this.useDynamicColor,
+    fontFamily: fontFamily ?? this.fontFamily,
+    schemeVariant: schemeVariant ?? this.schemeVariant,
+  );
 }
 
 class ThemeNotifier extends Notifier<ThemeState> {
@@ -56,7 +55,9 @@ class ThemeNotifier extends Notifier<ThemeState> {
     if (m == 'dark') mode = ThemeMode.dark;
     final c = p.getInt(_kColor);
     return ThemeState(
-        mode: mode, seedColor: c != null ? Color(c) : const Color(0xFF6750A4));
+      mode: mode,
+      seedColor: c != null ? Color(c) : const Color(0xFF6750A4),
+    );
   }
 
   Future<void> setThemeMode(ThemeMode m) async {
@@ -64,8 +65,8 @@ class ThemeNotifier extends Notifier<ThemeState> {
     final v = m == ThemeMode.light
         ? 'light'
         : m == ThemeMode.dark
-            ? 'dark'
-            : 'system';
+        ? 'dark'
+        : 'system';
     await ref.read(sharedPreferencesProvider).setString(_kMode, v);
   }
 

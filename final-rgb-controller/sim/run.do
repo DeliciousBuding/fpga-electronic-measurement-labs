@@ -2,7 +2,6 @@ vlib work
 vlog src/uart_tx_byte.v
 vlog src/uart_rx_byte.v
 vlog src/cmd_parser.v
-vlog src/rgb_pwm_core.v
 vlog src/breath_engine.v
 vlog src/flow_engine.v
 vlog src/gradient_engine.v

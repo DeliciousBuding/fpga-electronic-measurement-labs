@@ -26,7 +26,9 @@ class PreferencesNotifier extends Notifier<AppPreferences> {
 }
 
 final preferencesProvider =
-    NotifierProvider<PreferencesNotifier, AppPreferences>(PreferencesNotifier.new);
+    NotifierProvider<PreferencesNotifier, AppPreferences>(
+      PreferencesNotifier.new,
+    );
 
 class BarVisibilityNotifier extends Notifier<double> {
   @override
@@ -36,5 +38,6 @@ class BarVisibilityNotifier extends Notifier<double> {
   void hide() => state = 0.0;
 }
 
-final barVisibilityProvider =
-    NotifierProvider<BarVisibilityNotifier, double>(BarVisibilityNotifier.new);
+final barVisibilityProvider = NotifierProvider<BarVisibilityNotifier, double>(
+  BarVisibilityNotifier.new,
+);

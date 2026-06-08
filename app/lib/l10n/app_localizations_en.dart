@@ -270,6 +270,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get debugLogEmpty => 'No logs yet';
 
   @override
+  String get diagnosticsTitle => 'Connection Diagnostics';
+
+  @override
+  String get diagnosticsPhase => 'Phase';
+
+  @override
+  String get diagnosticsAdapter => 'Bluetooth';
+
+  @override
+  String get diagnosticsProtocol => 'Protocol';
+
+  @override
+  String get diagnosticsScanCount => 'Scan';
+
+  @override
+  String get diagnosticsLastError => 'Error';
+
+  @override
+  String get diagnosticsNoError => 'None';
+
+  @override
+  String get diagnosticsRun => 'Run diagnostics';
+
+  @override
+  String get diagnosticsQuery => 'Query status';
+
+  @override
+  String get diagnosticsCopy => 'Copy snapshot';
+
+  @override
+  String get diagnosticsClear => 'Clear log';
+
+  @override
+  String get diagnosticsCopied => 'Diagnostics snapshot copied';
+
+  @override
   String get bleNotSupported => 'BLE not supported';
 
   @override

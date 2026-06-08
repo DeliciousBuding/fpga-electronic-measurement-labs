@@ -10,7 +10,6 @@ final-rgb-controller/
 │   ├── uart_rx_byte.v
 │   ├── uart_tx_byte.v
 │   ├── cmd_parser.v
-│   ├── rgb_pwm_core.v
 │   ├── breath_engine.v
 │   ├── flow_engine.v
 │   ├── gradient_engine.v
@@ -21,6 +20,8 @@ final-rgb-controller/
 ├── tools/              ← 辅助脚本
 └── docs/               ← 模块文档
 ```
+
+`src/rgb_pwm_core.v` 保留为早期 PWM 参考实现，不参与当前 Quartus 工程和 ModelSim 全链路仿真；当前 LED 输出路径为 `rgb_controller_top` → `ws2812_driver` → `led_din`。
 
 ## 命令协议
 

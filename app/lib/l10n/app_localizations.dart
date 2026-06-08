@@ -586,6 +586,30 @@ abstract class AppLocalizations {
   /// **'暂无日志'**
   String get debugLogEmpty;
 
+  String get diagnosticsTitle;
+
+  String get diagnosticsPhase;
+
+  String get diagnosticsAdapter;
+
+  String get diagnosticsProtocol;
+
+  String get diagnosticsScanCount;
+
+  String get diagnosticsLastError;
+
+  String get diagnosticsNoError;
+
+  String get diagnosticsRun;
+
+  String get diagnosticsQuery;
+
+  String get diagnosticsCopy;
+
+  String get diagnosticsClear;
+
+  String get diagnosticsCopied;
+
   /// No description provided for @bleNotSupported.
   ///
   /// In zh, this message translates to:

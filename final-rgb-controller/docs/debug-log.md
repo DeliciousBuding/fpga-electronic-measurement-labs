@@ -2,7 +2,7 @@
 
 日期: 2026-06-04 | 状态: FPGA 侧完成
 
-## 工程文件清单 (10 个 Verilog 模块, 1093 行)
+## 工程文件清单 (9 个综合 Verilog 模块)
 
 | 文件 | 类型 | 功能 |
 |------|------|------|
@@ -10,12 +10,13 @@
 | `uart_rx_byte.v` | 复用 task2-1 | UART 8N1 RX, 起始位确认+中心采样+停止位校验 |
 | `ws2812_driver.v` | 改造 task1-1 | 外部 8 组 GRB 输入, update/busy 握手 |
 | `cmd_parser.v` | 新写 v6 | 7 态 FSM, 命令帧解析 (1-4B), ACK/Status 回复 |
-| `rgb_pwm_core.v` | 新写 | 3ch 8bit PWM, 256 级 |
 | `breath_engine.v` | 新写 | 64 项 sin LUT (8bit), period 控制呼吸速度 |
 | `flow_engine.v` | 新写 | speed 控制流水位移, 8bit mask |
 | `gradient_engine.v` | 新写 | 128 项彩虹 LUT (24bit), HSV 色相环 |
 | `scene_store.v` | 新写 | 8×4B 寄存器组, save/load, 复位初始化 |
-| `rgb_controller_top.v` | 新写 | 顶层连线, 5 个 I/O, 全模块实例化 |
+| `rgb_controller_top.v` | 新写 | 顶层连线, 5 个 I/O, 当前综合模块实例化 |
+
+`rgb_pwm_core.v` 保留为早期 3ch 8bit PWM 参考实现，当前 WS2812 方案未实例化它，也不再加入 QSF/ModelSim 全链路编译列表。
 
 ## Quartus 编译
 
