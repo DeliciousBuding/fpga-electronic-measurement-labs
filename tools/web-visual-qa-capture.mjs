@@ -91,6 +91,23 @@ function openWebSocket(wsUrl) {
   });
 }
 
+function isIgnorableExternalFontError(entry) {
+  const source = String(entry.source ?? "").toLowerCase();
+  const level = String(entry.level ?? "").toLowerCase();
+  const url = String(entry.url ?? "").toLowerCase();
+  const text = String(entry.text ?? "").toLowerCase();
+  if (source !== "network" || level !== "error") {
+    return false;
+  }
+  return (
+    (url.includes("fonts.gstatic.com") || url.includes("fonts.googleapis.com")) &&
+    (text.includes("failed to load resource") ||
+      text.includes("err_connection_closed") ||
+      text.includes("err_internet_disconnected") ||
+      text.includes("failed to fetch"))
+  );
+}
+
 async function captureWithCdp(wsUrl) {
   const socket = await openWebSocket(wsUrl);
   let nextId = 1;
@@ -341,6 +358,9 @@ try {
     await writeFile(metricsOut, `${JSON.stringify(metrics, null, 2)}\n`);
   }
   const severeEvents = browserEvents.filter((entry) => {
+    if (isIgnorableExternalFontError(entry)) {
+      return false;
+    }
     const level = String(entry.level ?? "").toLowerCase();
     return level === "error" || level === "assert";
   });

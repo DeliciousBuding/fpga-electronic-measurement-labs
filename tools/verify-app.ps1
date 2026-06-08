@@ -91,7 +91,6 @@ if ($AllLocal) {
   $ReportDraft = $true
   $ApkQuality = $true
   $EvidenceManifest = $true
-  $DeliverablePackage = $true
 }
 
 if (($Device -in $personalDevices) -and !$AllowPersonalDevice -and $DeviceSmoke) {

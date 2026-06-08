@@ -15,6 +15,9 @@ void main() {
     expect(qaScript, contains('[int]\$WaitMs = 18000'));
     expect(qaScript, contains('TapSequence'));
     expect(qaScript, contains('ScrollSequence'));
+    expect(qaScript, contains('VisualQa'));
+    expect(qaScript, contains('visualQa=1'));
+    expect(qaScript, contains('Add-UrlQueryFlag'));
     expect(qaScript, contains('--tap-sequence'));
     expect(qaScript, contains('--scroll-sequence'));
     expect(qaScript, contains('Test-WebPerfMetrics'));
@@ -29,6 +32,9 @@ void main() {
     expect(captureScript, contains('Performance.getMetrics'));
     expect(captureScript, contains('measureFrameCadence'));
     expect(captureScript, contains('requestAnimationFrame(step)'));
+    expect(captureScript, contains('isIgnorableExternalFontError'));
+    expect(captureScript, contains('fonts.gstatic.com'));
+    expect(captureScript, contains('fonts.googleapis.com'));
     expect(captureScript, contains('tapSequence'));
     expect(captureScript, contains('scrollSequence'));
     expect(captureScript, contains('Invalid --tap-sequence item'));

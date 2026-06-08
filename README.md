@@ -28,7 +28,7 @@
 
 | 任务 | 内容 | 仿真 | Quartus 编译 | 上板 |
 | --- | --- | --- | --- | --- |
-| 综合实验 | RGB 彩灯蓝牙控制器 | WIP | WIP | WIP |
+| 综合实验 | RGB 彩灯蓝牙控制器 | 通过 | 通过 | 本轮未使用个人手机/板卡 |
 | Task1-1 | WS2812 流水彩灯 | N/A | 通过 | 通过 |
 | Task1-4 | UART TX，115200/8N1/0x55 | 通过 | 通过 | 通过 |
 | Task2-1 | 蓝牙回环、UART RX、优先级仲裁 | 通过 | 通过 | 通过 |
@@ -80,6 +80,14 @@ powershell -ExecutionPolicy Bypass -File .\tools\preflight-task3.ps1 -Compile
 TASK3_PRE_FLIGHT_OK
 ```
 
+综合实验本地无设备质量门禁：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\verify-app.ps1 -AllLocal
+```
+
+该门禁覆盖 Flutter 静态分析与测试、Web 多视口视觉 QA、ModelSim 协议/灯效仿真、Quartus Analysis & Synthesis、TeX 实验报告校验、Release APK 质量和 local evidence manifest。它不会运行 ADB、APK 安装、手机截图、JTAG 下载或交付包整理；需要实机验证或交付包复核时必须单独授权并显式运行对应门禁。
+
 ## 硬件连接说明
 
 Task2 蓝牙 UART 实验中，已确认的关键引脚映射如下：
@@ -109,4 +117,3 @@ Task2 蓝牙 UART 实验中，已确认的关键引脚映射如下：
 - Quartus `db/`、`incremental_db/`、`output_files/`、生成报告和 bitstream
 - ModelSim `work/`、`work_*`、`.wlf`、`.mpf`、`.cr.mti`、临时 `wlft*` 文件
 - 本地厂商参考资料、驱动包、PDF 导出件和个人交接记录
-

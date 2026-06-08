@@ -38,6 +38,9 @@ class _ScannerPageState extends ConsumerState<ScannerPage>
   late AnimationController _pulse;
   late AnimationController _ringCtrl;
 
+  bool get _showDebugSamples =>
+      kDebugMode || (kIsWeb && Uri.base.queryParameters['visualQa'] == '1');
+
   @override
   void initState() {
     super.initState();
@@ -100,7 +103,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage>
   }
 
   void _showDebugDevices() {
-    if (!kDebugMode || _scanning) return;
+    if (!_showDebugSamples || _scanning) return;
     _setScanning(false);
     setState(() {
       _devices = [];
@@ -184,7 +187,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage>
       appBar: AppBar(
         title: Text(t.scanTitle),
         actions: [
-          if (kDebugMode)
+          if (_showDebugSamples)
             IconButton(
               tooltip: Localizations.localeOf(context).languageCode == 'zh'
                   ? '载入调试样例'

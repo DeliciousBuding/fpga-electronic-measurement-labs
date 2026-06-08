@@ -11,18 +11,23 @@ void main() {
     expect(verifyApp, contains('verify-report-draft.ps1'));
     expect(verifyApp, contains('report draft verification'));
 
-    expect(reportScript, contains('Find-ReportMarkdown'));
-    expect(reportScript, contains('*RGB*.md'));
-    expect(reportScript, contains('WebVisualQA'));
-    expect(reportScript, contains('CH9143 RGB Controller'));
-    expect(reportScript, contains('ADB'));
+    expect(reportScript, contains('[string]\$TexFile'));
+    expect(reportScript, contains('*RGB*TeX*.tex'));
+    expect(reportScript, contains('xelatex'));
+    expect(reportScript, contains('hardware-photo-overview-v4.png'));
+    expect(reportScript, contains('hardware-photo-ledmap-v4.png'));
+    expect(reportScript, contains('Assert-PortraitImage'));
+    expect(reportScript, contains('PDF page count must be 1-6 pages'));
+    expect(reportScript, contains('Assert-TextNotMatches'));
+    expect(reportScript, contains('C301'));
+    expect(reportScript, contains('CH9143'));
+    expect(reportScript, contains('WS2812'));
     expect(reportScript, contains('APK'));
-    expect(reportScript, contains('BLE'));
-    expect(reportScript, contains('SignalTap'));
-    expect(reportScript, contains('word/media/*'));
+    expect(reportScript, contains('SOF'));
     expect(reportScript, contains('pdftotext'));
     expect(reportScript, contains('pdfinfo'));
-    expect(reportScript, contains('pandoc'));
-    expect(reportScript, contains('LastWriteTime -lt \$markdownFile.LastWriteTime'));
+    expect(reportScript, isNot(contains('Find-ReportMarkdown')));
+    expect(reportScript, isNot(contains('pandoc')));
+    expect(reportScript, isNot(contains('word/media/*')));
   });
 }

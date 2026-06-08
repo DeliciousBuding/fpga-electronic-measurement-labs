@@ -16,5 +16,7 @@ void main() {
     expect(verifyApp, contains('\$QuartusMap = \$true'));
     expect(verifyApp, contains('\$ReportDraft = \$true'));
     expect(verifyApp, contains('\$ApkQuality = \$true'));
+    expect(verifyApp, contains('\$EvidenceManifest = \$true'));
+    expect(verifyApp, isNot(contains('\$DeliverablePackage = \$true')));
   });
 }

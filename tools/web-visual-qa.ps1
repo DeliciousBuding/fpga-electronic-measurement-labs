@@ -220,6 +220,16 @@ function Test-WebPerfMetrics {
   }
 }
 
+function Add-UrlQueryFlag {
+  param(
+    [string]$BaseUrl,
+    [string]$Flag
+  )
+
+  $separator = if ($BaseUrl.Contains("?")) { "&" } else { "?" }
+  return "$BaseUrl$separator$Flag"
+}
+
 $repoRoot = Resolve-Path "$PSScriptRoot\.."
 if (!$Url) {
   $Url = "http://127.0.0.1:$Port"
@@ -250,8 +260,8 @@ $viewports = @(
   @{ Name = "mobile-390"; Width = 390; Height = 844; ScrollY = 0; Tab = 0 },
   @{ Name = "mobile-390-scroll"; Width = 390; Height = 844; ScrollY = 640; Tab = 0 },
   @{ Name = "mobile-390-scroll-return"; Width = 390; Height = 844; ScrollY = 0; Tab = 0; ScrollSequence = "640,700;-640,900" },
-  @{ Name = "mobile-390-scanner"; Width = 390; Height = 844; ScrollY = 0; Tab = 0; TapSequence = "366,30,1800" },
-  @{ Name = "mobile-390-scanner-debug"; Width = 390; Height = 844; ScrollY = 0; Tab = 0; TapSequence = "366,30,1800;366,30" },
+  @{ Name = "mobile-390-scanner"; Width = 390; Height = 844; ScrollY = 0; Tab = 0; TapSequence = "366,30,1800"; VisualQa = $true },
+  @{ Name = "mobile-390-scanner-debug"; Width = 390; Height = 844; ScrollY = 0; Tab = 0; TapSequence = "366,30,1800;366,30"; VisualQa = $true },
   @{ Name = "mobile-390-effect"; Width = 390; Height = 844; ScrollY = 0; Tab = 1 },
   @{ Name = "mobile-390-scene"; Width = 390; Height = 844; ScrollY = 0; Tab = 2 },
   @{ Name = "mobile-390-settings"; Width = 390; Height = 844; ScrollY = 0; Tab = 3 },
@@ -270,6 +280,11 @@ foreach ($viewport in $viewports) {
   $tab = [int]$viewport.Tab
   $tapSequence = if ($viewport.ContainsKey("TapSequence")) { [string]$viewport.TapSequence } else { "" }
   $scrollSequence = if ($viewport.ContainsKey("ScrollSequence")) { [string]$viewport.ScrollSequence } else { "" }
+  $captureUrl = if ($viewport.ContainsKey("VisualQa") -and $viewport.VisualQa) {
+    Add-UrlQueryFlag -BaseUrl $Url -Flag "visualQa=1"
+  } else {
+    $Url
+  }
   $tapX = [Math]::Round($width * (($tab * 2) + 1) / 8)
   $tapY = $height - 40
   $screenshot = Join-Path $resolvedOutDir "$name.png"
@@ -289,7 +304,7 @@ foreach ($viewport in $viewports) {
     $args = @(
       $captureScript,
       "--browser", $browser,
-      "--url", $Url,
+      "--url", $captureUrl,
       "--out", $screenshot,
       "--log-out", $browserLog,
       "--metrics-out", $metricsLog,

@@ -10,7 +10,8 @@ void main() {
 
     expect(verifyApp, contains('[switch]\$DeliverablePackage'));
     expect(verifyApp, contains('verify-deliverable-package.ps1'));
-    expect(verifyApp, contains('\$DeliverablePackage = \$true'));
+    expect(verifyApp, contains('if (\$DeliverablePackage)'));
+    expect(verifyApp, isNot(contains('\$DeliverablePackage = \$true')));
 
     expect(packageScript, contains('Expand-Archive'));
     expect(packageScript, contains('SHA256SUMS.txt'));

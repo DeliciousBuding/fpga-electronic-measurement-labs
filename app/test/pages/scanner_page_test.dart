@@ -163,6 +163,8 @@ void main() {
 
     expect(scannerPage, contains('this.autoScanOnAdapterOn = !kIsWeb'));
     expect(scannerPage, contains('kDebugMode'));
+    expect(scannerPage, contains('visualQa'));
+    expect(scannerPage, contains("Uri.base.queryParameters['visualQa']"));
     expect(scannerPage, contains('_debugScanDevices'));
     expect(scannerPage, contains('_showDebugDevices'));
     expect(scannerPage, contains('Icons.science_rounded'));
