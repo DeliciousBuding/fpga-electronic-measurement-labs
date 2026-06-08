@@ -1,3 +1,5 @@
+// Legacy reference only. The final WS2812 hardware path does not instantiate
+// this 3-channel PWM core; rgb_controller_top drives ws2812_driver directly.
 module rgb_pwm_core (
     input  wire       clk,
     input  wire       rst_n,

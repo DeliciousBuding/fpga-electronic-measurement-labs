@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 /// 命令协议常量
 class Cmd {
   static const setColor = 0x10;
@@ -11,6 +13,26 @@ class Cmd {
 
   static const ackOk = 0xAA;
   static const ackErr = 0xEE;
+
+  static Uint8List setColorFrame(int r, int g, int b) =>
+      Uint8List.fromList([setColor, _byte(r), _byte(g), _byte(b)]);
+  static Uint8List setBrightnessFrame(int value) =>
+      Uint8List.fromList([setBrightness, _byte(value)]);
+  static Uint8List setModeFrame(int mode) =>
+      Uint8List.fromList([setMode, _mode(mode)]);
+  static Uint8List setFlowSpeedFrame(int value) =>
+      Uint8List.fromList([setFlowSpeed, _byte(value)]);
+  static Uint8List setBreathPeriodFrame(int value) =>
+      Uint8List.fromList([setBreathPeriod, _byte(value)]);
+  static Uint8List saveSceneFrame(int slot) =>
+      Uint8List.fromList([saveScene, _sceneSlot(slot)]);
+  static Uint8List loadSceneFrame(int slot) =>
+      Uint8List.fromList([loadScene, _sceneSlot(slot)]);
+  static Uint8List queryStatusFrame() => Uint8List.fromList([queryStatus]);
+
+  static int _byte(int value) => value.clamp(0, 255);
+  static int _mode(int value) => value.clamp(0, 4);
+  static int _sceneSlot(int value) => value.clamp(0, 7);
 }
 
 enum LightMode {

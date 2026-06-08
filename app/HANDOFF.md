@@ -145,15 +145,15 @@ CH9143 模块 UUID: Service `FFF0`, Write `FFF2`, Notify `FFF1`
 ## 8. 当前构建状态 & 已知问题
 
 ### 编译状态
-- **`dart analyze`**: ✅ 0 error, 0 warning
-- **`flutter build apk --debug`**: ❌ `android.useAndroidX=true` 缺失
-
-**修复方法**：在 `android/gradle.properties` 中加一行 `android.useAndroidX=true`。这个文件当前被我写入覆盖了成只有两行，导致原来的 `android.useAndroidX` 被清掉了。直接用 Android Studio 打开 `app/android/` 重生成或手动加。
+- **`flutter analyze`**: 通过，No issues
+- **`flutter test`**: 42/42 通过
+- **`flutter build apk --release --target-platform android-arm64`**: 通过，release APK 约 21.8 MB
+- **`WebVisualQA`**: 通过，自动截图 `1280x720`、`390x844`、`460x900` 并采集 console/runtime 日志
 
 ### 其他注意
-- `flutter run` 方式较慢 (首次 Gradle 下载 NDK + SDK platform)，建议用 `flutter build apk --debug` + `adb install` 两步走
-- BLE 功能无法在模拟器测试，需要真机
-- 模拟器名 `rgb_ble_controller`，当前应处于运行状态
+- 当前禁止使用个人手机测试；不要运行 ADB、APK 安装、手机截图或 `device-smoke`，除非用户重新授权。
+- 本地验证优先使用 `tools/verify-app.ps1`，UI 视觉验证使用 `tools/verify-app.ps1 -SkipAnalyze -SkipTests -WebVisualQA`。
+- BLE 功能无法在模拟器完整验证；后续需要课堂设备或用户重新授权的专用测试设备。
 
 ## 9. 交互流程
 
@@ -173,12 +173,12 @@ ScannerPage 目前不在主流程中——从 scanner 连接成功后会 pop 回
 
 | APP 操作 | CMD 帧 | FPGA 模块接收 |
 |----------|--------|--------------|
-| 拖动 R/G/B | `[0x10, R, G, B]` | `cmd_parser` → `rgb_pwm_core` |
+| 拖动 R/G/B | `[0x10, R, G, B]` | `cmd_parser` → `ws2812_driver` |
 | 拖动亮度 | `[0x11, V]` | `cmd_parser` → 全局亮度 |
 | 选择静态 | `[0x20, 0]` | `cmd_parser` → bypass engine |
 | 选择呼吸 | `[0x20, 1]` | `cmd_parser` → `breath_engine` |
 | 选择流水 | `[0x20, 2]` | `cmd_parser` → `flow_engine` |
 | 选择渐变 | `[0x20, 3]` | `cmd_parser` → `gradient_engine` |
-| 选择音乐 | `[0x20, 4]` | `cmd_parser` → `fft_core` (选做) |
+| 选择音乐 | 暂不发送 | FPGA 端未实现，App 端禁用该入口 |
 | 保存场景 | `[0x30, slot]` | `cmd_parser` → `scene_store` |
 | 加载场景 | `[0x31, slot]` | `cmd_parser` → `scene_store` |

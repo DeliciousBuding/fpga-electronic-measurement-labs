@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/ble_provider.dart';
+import '../../theme/app_design.dart';
 import '../scanner_page.dart';
 
 class BleBanner extends ConsumerWidget {
@@ -13,33 +14,66 @@ class BleBanner extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     return ValueListenableBuilder(
       valueListenable: ble.isConnected,
-      builder: (context, connected, _) => AnimatedSize(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+      builder: (context, connected, _) => AnimatedSwitcher(
+        duration: AppMotion.normal,
+        switchInCurve: AppMotion.standard,
+        switchOutCurve: AppMotion.standard,
         child: connected
-            ? const SizedBox.shrink()
-            : Card(
-                margin: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                color: cs.errorContainer,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  child: Row(children: [
-                    Icon(Icons.bluetooth_disabled_rounded, size: 20, color: cs.onErrorContainer),
-                    const SizedBox(width: 10),
-                    Expanded(child: Text(t.bleNotConnected,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600, color: cs.onErrorContainer))),
-                    TextButton(
-                        onPressed: () => Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => const ScannerPage())),
-                        style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            visualDensity: VisualDensity.compact),
-                        child: Text(t.bleConnect,
-                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                fontWeight: FontWeight.w700, color: cs.onErrorContainer))),
-                  ]),
+            ? const SizedBox.shrink(key: ValueKey('ble-connected'))
+            : Material(
+                key: const ValueKey('ble-offline'),
+                color: cs.errorContainer.withAlpha(120),
+                borderRadius: BorderRadius.circular(AppRadii.lg),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(AppRadii.lg),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ScannerPage()),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.bluetooth_disabled_rounded,
+                          size: 18,
+                          color: cs.onErrorContainer,
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            t.bleNotConnected,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: cs.onErrorContainer,
+                                ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Flexible(
+                          flex: 0,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              t.bleConnect,
+                              maxLines: 1,
+                              style: Theme.of(context).textTheme.labelMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: cs.onErrorContainer,
+                                  ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
       ),
@@ -65,18 +99,29 @@ class BleAction extends ConsumerWidget {
               ? Badge(
                   isLabelVisible: true,
                   smallSize: 8,
-                  child: Icon(Icons.bluetooth_connected_rounded, color: cs.primary))
-              : Icon(Icons.bluetooth_rounded, color: cs.onSurfaceVariant.withAlpha(150)),
+                  child: Icon(
+                    Icons.bluetooth_connected_rounded,
+                    color: cs.primary,
+                  ),
+                )
+              : Icon(
+                  Icons.bluetooth_rounded,
+                  color: cs.onSurfaceVariant.withAlpha(150),
+                ),
           onPressed: () => Navigator.push(
-              context, MaterialPageRoute(builder: (_) => const ScannerPage())),
+            context,
+            MaterialPageRoute(builder: (_) => const ScannerPage()),
+          ),
           onLongPress: connected
               ? () {
                   ble.queryStatus();
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(t.bleRefreshing),
-                    behavior: SnackBarBehavior.floating,
-                    duration: const Duration(seconds: 1),
-                  ));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(t.bleRefreshing),
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
                 }
               : null,
         ),

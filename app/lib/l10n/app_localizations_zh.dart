@@ -269,6 +269,42 @@ class AppLocalizationsZh extends AppLocalizations {
   String get debugLogEmpty => '暂无日志';
 
   @override
+  String get diagnosticsTitle => '连接诊断';
+
+  @override
+  String get diagnosticsPhase => '阶段';
+
+  @override
+  String get diagnosticsAdapter => '蓝牙';
+
+  @override
+  String get diagnosticsProtocol => '协议';
+
+  @override
+  String get diagnosticsScanCount => '扫描';
+
+  @override
+  String get diagnosticsLastError => '错误';
+
+  @override
+  String get diagnosticsNoError => '暂无';
+
+  @override
+  String get diagnosticsRun => '运行诊断';
+
+  @override
+  String get diagnosticsQuery => '查询状态';
+
+  @override
+  String get diagnosticsCopy => '复制快照';
+
+  @override
+  String get diagnosticsClear => '清空日志';
+
+  @override
+  String get diagnosticsCopied => '诊断快照已复制';
+
+  @override
   String get bleNotSupported => 'BLE 不支持';
 
   @override

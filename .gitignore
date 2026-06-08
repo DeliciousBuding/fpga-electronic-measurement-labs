@@ -45,6 +45,8 @@ demo-sof/
 
 # Top-level Flutter artifacts (only app/ is the Flutter project)
 lib/
+!app/lib/
+!app/lib/**
 pubspec.lock
 pubspec.yaml
 .dart_tool/
@@ -52,10 +54,12 @@ pubspec.yaml
 
 # Flutter/Android build
 app/android/.gradle/
+app/android/build/
 app/android/local.properties
 app/.dart_tool/
 app/build/
 app/.flutter-plugins*
+*.hprof
 
 # Handoff notes (ephemeral)
 HANDOFF_*.md
@@ -65,3 +69,12 @@ HANDOFF_*.md
 Thumbs.db
 desktop.ini
 docs/screenshots/
+artifacts/device-smoke/
+artifacts/install-debug/
+artifacts/web-visual-qa/
+artifacts/fpga-sim/
+artifacts/fpga-quartus/
+artifacts/local-evidence/
+deliverables/*/files/
+install-prompt.png
+quartus-*.png
