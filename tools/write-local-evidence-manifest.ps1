@@ -45,18 +45,18 @@ function Get-FileEvidence {
   }
 }
 
-function Find-ReportMarkdown {
+function Find-ReportTex {
   param([string]$Root)
 
-  $candidate = Get-ChildItem -LiteralPath $Root -Recurse -Filter "*RGB*.md" -ErrorAction SilentlyContinue |
+  $candidate = Get-ChildItem -LiteralPath $Root -Recurse -Filter "*RGB*TeX*.tex" -File -ErrorAction SilentlyContinue |
     Where-Object {
-      $_.Length -gt 15000 -and
-      (Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8) -match "WebVisualQA"
+      $_.Length -gt 10000 -and
+      (Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8) -match "hardware-photo-overview-v4.png"
     } |
     Sort-Object LastWriteTime -Descending |
     Select-Object -First 1
   if (!$candidate) {
-    throw "Could not discover RGB report Markdown under: $Root"
+    throw "Could not discover RGB TeX report under: $Root"
   }
   return $candidate.FullName
 }
@@ -79,27 +79,22 @@ $reportSearchRoot = if ($ReportRoot) {
 } else {
   Join-Path $env:USERPROFILE "Documents"
 }
-$reportMarkdown = Find-ReportMarkdown -Root $reportSearchRoot
-$reportDir = Split-Path -Parent $reportMarkdown
-$reportBaseName = [IO.Path]::GetFileNameWithoutExtension($reportMarkdown)
-$reportDocx = (Get-ChildItem -LiteralPath $reportDir -Filter "$reportBaseName*.docx" |
-  Sort-Object LastWriteTime -Descending |
-  Select-Object -First 1).FullName
-$reportPdf = (Get-ChildItem -LiteralPath $reportDir -Filter "$reportBaseName*.pdf" |
-  Sort-Object LastWriteTime -Descending |
-  Select-Object -First 1).FullName
-$checklist = (Get-ChildItem -LiteralPath $reportDir -Filter "*RGB*.md" |
+$reportTex = Find-ReportTex -Root $reportSearchRoot
+$reportDir = Split-Path -Parent $reportTex
+$reportBaseName = [IO.Path]::GetFileNameWithoutExtension((Split-Path -Leaf $reportTex))
+$reportPdf = Join-Path $reportDir "$reportBaseName.pdf"
+$checklistFile = Get-ChildItem -LiteralPath $reportDir -Filter "*RGB*.md" |
   Where-Object {
-    $_.FullName -ne $reportMarkdown -and
     $_.Length -lt 10000 -and
-    (Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8) -match "PDF" -and
-    (Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8) -match "DOCX"
+    (Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8) -match "SOF" -and
+    (Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8) -match "APK"
   } |
   Sort-Object LastWriteTime -Descending |
-  Select-Object -First 1).FullName
+  Select-Object -First 1
+$checklist = if ($checklistFile) { $checklistFile.FullName } else { "" }
 
-if (!$reportDocx -or !$reportPdf -or !$checklist) {
-  throw "Could not discover report DOCX/PDF/checklist evidence files."
+if (!(Test-Path -LiteralPath $reportPdf) -or !$checklist) {
+  throw "Could not discover report TeX/PDF/checklist evidence files."
 }
 
 $apk = Join-Path $repoRoot "app\build\app\outputs\flutter-apk\app-release.apk"
@@ -120,9 +115,8 @@ $files = @(
   Get-FileEvidence -Path $simTranscript -Kind "fpga-modelsim-transcript" -Description "ModelSim full-link and WS2812 timing transcript"
   Get-FileEvidence -Path $quartusReport -Kind "quartus-map-report" -Description "Quartus Analysis and Synthesis report"
   Get-FileEvidence -Path $quartusSummary -Kind "quartus-map-summary" -Description "Quartus Analysis and Synthesis summary"
-  Get-FileEvidence -Path $reportMarkdown -Kind "course-report-markdown" -Description "Course report Markdown draft"
-  Get-FileEvidence -Path $reportDocx -Kind "course-report-docx" -Description "Course report DOCX local validation draft"
-  Get-FileEvidence -Path $reportPdf -Kind "course-report-pdf" -Description "Course report PDF local validation draft"
+  Get-FileEvidence -Path $reportTex -Kind "course-report-tex" -Description "Course report TeX source"
+  Get-FileEvidence -Path $reportPdf -Kind "course-report-pdf" -Description "Course report final 6-page PDF"
   Get-FileEvidence -Path $checklist -Kind "course-submit-checklist" -Description "Course submission checklist"
   Get-FileEvidence -Path $apk -Kind "android-release-apk" -Description "Flutter Android release APK"
 )

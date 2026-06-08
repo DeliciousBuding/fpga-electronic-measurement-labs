@@ -18,6 +18,11 @@ void main() {
     expect(manifestScript, contains('forbiddenDeviceTargets'));
     expect(manifestScript, contains('verify-app.ps1 -AllLocal'));
     expect(manifestScript, contains('webVisualQaPng'));
+    expect(manifestScript, contains('Find-ReportTex'));
+    expect(manifestScript, contains('*RGB*TeX*.tex'));
+    expect(manifestScript, contains('*RGB*.md'));
+    expect(manifestScript, contains('course-report-tex'));
+    expect(manifestScript, contains('course-report-pdf'));
     expect(manifestScript, contains('modelsim-transcript.log'));
     expect(manifestScript, contains('final-rgb-controller.map.rpt'));
     expect(manifestScript, contains('app-release.apk'));
