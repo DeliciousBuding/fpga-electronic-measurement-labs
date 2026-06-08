@@ -426,6 +426,9 @@ class BLEService {
   Future<void> setBreathPeriod(int v) => _send(Cmd.setBreathPeriodFrame(v));
   void setBreathPeriodThrottled(int v) =>
       _throttledSend('breath', Cmd.setBreathPeriodFrame(v));
+  Future<void> setMusicLevel(int v) => _send(Cmd.setMusicLevelFrame(v));
+  void setMusicLevelThrottled(int v) =>
+      _throttledSend('music', Cmd.setMusicLevelFrame(v), ms: 48);
   Future<void> saveScene(int v) => _send(Cmd.saveSceneFrame(v));
   Future<void> loadScene(int v) => _send(Cmd.loadSceneFrame(v));
 

@@ -60,7 +60,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get descGradient => 'HSV hue smooth transition';
 
   @override
-  String get descMusic => 'FFT linked (not implemented)';
+  String get descMusic => 'Realtime microphone level following';
 
   @override
   String get wip => 'WIP';

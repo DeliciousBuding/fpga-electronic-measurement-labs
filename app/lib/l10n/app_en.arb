@@ -27,7 +27,7 @@
   "descBreath": "Sine envelope brightness cycle",
   "descFlow": "Light moves position by position",
   "descGradient": "HSV hue smooth transition",
-  "descMusic": "FFT linked (not implemented)",
+  "descMusic": "Realtime microphone level following",
   "wip": "WIP",
 
   "flowSpeed": "Flow Speed",

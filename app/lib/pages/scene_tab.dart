@@ -295,8 +295,8 @@ class _SceneSwatch extends StatelessWidget {
           right: -3,
           top: -3,
           child: AnimatedScale(
-            duration: AppMotion.fast,
-            curve: AppMotion.standard,
+            duration: AppMotion.duration(context, AppMotion.fast),
+            curve: AppMotion.curve(context, AppMotion.standard),
             scale: saved && !active ? 1 : 0,
             child: Container(
               width: 16,
@@ -318,8 +318,8 @@ class _SceneSwatch extends StatelessWidget {
           right: -4,
           bottom: -4,
           child: AnimatedScale(
-            duration: AppMotion.fast,
-            curve: AppMotion.standard,
+            duration: AppMotion.duration(context, AppMotion.fast),
+            curve: AppMotion.curve(context, AppMotion.standard),
             scale: active ? 1 : 0,
             child: Container(
               width: 18,

@@ -15,6 +15,8 @@ module cmd_parser (
     output reg [7:0]  flow_speed,
     output reg        breath_period_valid,
     output reg [7:0]  breath_period,
+    output reg        music_level_valid,
+    output reg [7:0]  music_level,
     output reg        scene_save_valid,
     output reg [2:0]  scene_save_slot,
     output reg        scene_load_valid,
@@ -53,6 +55,7 @@ module cmd_parser (
                 8'h20: get_frame_len = 4'd2;
                 8'h21: get_frame_len = 4'd2;
                 8'h22: get_frame_len = 4'd2;
+                8'h23: get_frame_len = 4'd2;
                 8'h30: get_frame_len = 4'd2;
                 8'h31: get_frame_len = 4'd2;
                 8'hFF: get_frame_len = 4'd1;
@@ -172,6 +175,8 @@ module cmd_parser (
             flow_speed          <= 8'd128;
             breath_period_valid <= 1'b0;
             breath_period       <= 8'd128;
+            music_level_valid   <= 1'b0;
+            music_level         <= 8'd0;
             scene_save_valid    <= 1'b0;
             scene_save_slot     <= 3'd0;
             scene_load_valid    <= 1'b0;
@@ -182,6 +187,7 @@ module cmd_parser (
             mode_valid          <= 1'b0;
             flow_speed_valid    <= 1'b0;
             breath_period_valid <= 1'b0;
+            music_level_valid   <= 1'b0;
             scene_save_valid    <= 1'b0;
             scene_load_valid    <= 1'b0;
 
@@ -208,6 +214,10 @@ module cmd_parser (
                     8'h22: begin
                         breath_period       <= arg_buf[0];
                         breath_period_valid <= 1'b1;
+                    end
+                    8'h23: begin
+                        music_level       <= arg_buf[0];
+                        music_level_valid <= 1'b1;
                     end
                     8'h30: begin
                         scene_save_slot  <= arg_buf[0][2:0];

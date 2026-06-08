@@ -7,6 +7,7 @@ class Cmd {
   static const setMode = 0x20;
   static const setFlowSpeed = 0x21;
   static const setBreathPeriod = 0x22;
+  static const setMusicLevel = 0x23;
   static const saveScene = 0x30;
   static const loadScene = 0x31;
   static const queryStatus = 0xFF;
@@ -24,6 +25,8 @@ class Cmd {
       Uint8List.fromList([setFlowSpeed, _byte(value)]);
   static Uint8List setBreathPeriodFrame(int value) =>
       Uint8List.fromList([setBreathPeriod, _byte(value)]);
+  static Uint8List setMusicLevelFrame(int value) =>
+      Uint8List.fromList([setMusicLevel, _byte(value)]);
   static Uint8List saveSceneFrame(int slot) =>
       Uint8List.fromList([saveScene, _sceneSlot(slot)]);
   static Uint8List loadSceneFrame(int slot) =>

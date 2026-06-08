@@ -28,7 +28,7 @@
   "descBreath": "正弦包络周期明暗",
   "descFlow": "灯光逐位移动",
   "descGradient": "HSV 色相平滑过渡",
-  "descMusic": "FFT 联动 (未实现)",
+  "descMusic": "麦克风电平实时跟随",
   "wip": "WIP",
 
   "flowSpeed": "流水速度",

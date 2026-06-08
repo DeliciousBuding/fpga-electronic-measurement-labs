@@ -46,6 +46,45 @@ void main() {
     expect(shell, contains('AppMotion.curve('));
   });
 
+  test('major implicit animations use context-aware motion tokens', () {
+    final files = [
+      'lib/pages/color_tab.dart',
+      'lib/pages/effect_tab.dart',
+      'lib/pages/scene_tab.dart',
+      'lib/pages/settings_page.dart',
+      'lib/pages/scanner_page.dart',
+      'lib/pages/shared/ble_widgets.dart',
+      'lib/pages/shared/scanner_widgets.dart',
+    ];
+
+    for (final path in files) {
+      final source = File(path).readAsStringSync();
+      expect(source, contains('AppMotion.duration('), reason: path);
+      expect(source, contains('AppMotion.curve('), reason: path);
+      expect(source, isNot(contains('duration: AppMotion.fast')), reason: path);
+      expect(
+        source,
+        isNot(contains('duration: AppMotion.normal')),
+        reason: path,
+      );
+      expect(
+        source,
+        isNot(contains('switchInCurve: AppMotion.emphasized')),
+        reason: path,
+      );
+      expect(
+        source,
+        isNot(contains('switchOutCurve: AppMotion.standard')),
+        reason: path,
+      );
+      expect(
+        source,
+        isNot(contains('curve: AppMotion.standard')),
+        reason: path,
+      );
+    }
+  });
+
   test('BLE gate starts motion-aware initialization after first frame', () {
     final main = File('lib/main.dart').readAsStringSync();
 

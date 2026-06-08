@@ -8,6 +8,7 @@ void main() {
     expect(Cmd.setModeFrame(2), [0x20, 2]);
     expect(Cmd.setFlowSpeedFrame(-1), [0x21, 0]);
     expect(Cmd.setBreathPeriodFrame(128), [0x22, 128]);
+    expect(Cmd.setMusicLevelFrame(300), [0x23, 255]);
     expect(Cmd.saveSceneFrame(7), [0x30, 7]);
     expect(Cmd.loadSceneFrame(0), [0x31, 0]);
     expect(Cmd.queryStatusFrame(), [0xFF]);

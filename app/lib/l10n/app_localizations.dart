@@ -203,7 +203,7 @@ abstract class AppLocalizations {
   /// No description provided for @descMusic.
   ///
   /// In zh, this message translates to:
-  /// **'FFT 联动 (未实现)'**
+  /// **'麦克风电平实时跟随'**
   String get descMusic;
 
   /// No description provided for @wip.

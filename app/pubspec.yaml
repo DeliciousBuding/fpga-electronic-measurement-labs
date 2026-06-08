@@ -1,7 +1,7 @@
 name: rgb_ble_controller
 description: "RGB彩灯蓝牙控制器 - C301综合实验"
 publish_to: 'none'
-version: 0.1.0+2026062409
+version: 0.1.0+2026062413
 environment:
   sdk: ^3.10.4
 

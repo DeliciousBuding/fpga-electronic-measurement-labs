@@ -112,15 +112,32 @@ class _ScannerPageState extends ConsumerState<ScannerPage>
   void _setScanning(bool value) {
     if (!mounted) return;
     setState(() => _scanning = value);
+    if (AppMotion.reduced(context)) {
+      _pulse.stop();
+      _ringCtrl.stop();
+      _pulse.value = 0;
+      _ringCtrl.value = 0;
+      return;
+    }
     if (value) {
       _pulse.repeat(reverse: true);
       _ringCtrl.repeat();
     } else {
       _pulse.stop();
       _ringCtrl.stop();
-      _pulse.animateTo(0, duration: AppMotion.fast, curve: AppMotion.standard);
+      _pulse.animateTo(
+        0,
+        duration: AppMotion.duration(context, AppMotion.fast),
+        curve: AppMotion.curve(context, AppMotion.standard),
+      );
       _ringCtrl.value = 0;
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_scanning) _setScanning(true);
   }
 
   Future<void> _connect(ScanResult r) async {
@@ -294,9 +311,9 @@ class _ScanDiagnosticsPanel extends StatelessWidget {
             diagnostics.phase == BleDiagnosticPhase.failed ||
             diagnostics.failureSummary.isNotEmpty;
         return AnimatedSwitcher(
-          duration: AppMotion.normal,
-          switchInCurve: AppMotion.emphasized,
-          switchOutCurve: AppMotion.standard,
+          duration: AppMotion.duration(context, AppMotion.normal),
+          switchInCurve: AppMotion.curve(context, AppMotion.emphasized),
+          switchOutCurve: AppMotion.curve(context, AppMotion.standard),
           child: visible
               ? _ScanDiagnosticsCard(
                   key: const ValueKey('scan-diagnostics-visible'),

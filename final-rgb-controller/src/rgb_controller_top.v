@@ -16,7 +16,7 @@ module rgb_controller_top (
     // =====================================================
     // Registers (declared BEFORE any use)
     // =====================================================
-    reg [7:0] cur_r, cur_g, cur_b, cur_brightness, cur_flow_speed, cur_breath_period;
+    reg [7:0] cur_r, cur_g, cur_b, cur_brightness, cur_flow_speed, cur_breath_period, cur_music_level;
     reg [2:0] cur_mode;
 
     // =====================================================
@@ -39,11 +39,11 @@ module rgb_controller_top (
     // cmd_parser
     // =====================================================
     wire        color_valid, brightness_valid, mode_valid;
-    wire        flow_speed_valid, breath_period_valid;
+    wire        flow_speed_valid, breath_period_valid, music_level_valid;
     wire        scene_save_valid, scene_load_valid;
     wire [7:0]  cp_color_r, cp_color_g, cp_color_b, cp_brightness;
     wire [2:0]  cp_mode;
-    wire [7:0]  cp_flow_speed, cp_breath_period;
+    wire [7:0]  cp_flow_speed, cp_breath_period, cp_music_level;
     wire [2:0]  cp_scene_save_slot, cp_scene_load_slot;
     wire        cp_tx_start, tx_busy;
     wire [7:0]  cp_tx_data;
@@ -66,6 +66,8 @@ module rgb_controller_top (
         .flow_speed        (cp_flow_speed),
         .breath_period_valid(breath_period_valid),
         .breath_period     (cp_breath_period),
+        .music_level_valid (music_level_valid),
+        .music_level       (cp_music_level),
         .scene_save_valid  (scene_save_valid),
         .scene_save_slot   (cp_scene_save_slot),
         .scene_load_valid  (scene_load_valid),
@@ -115,6 +117,7 @@ module rgb_controller_top (
             cur_mode         <= 3'd0;
             cur_flow_speed   <= 8'd128;
             cur_breath_period <= 8'd128;
+            cur_music_level  <= 8'd0;
         end else begin
             if (scene_load_done) begin
                 cur_r          <= scene_load_r;
@@ -135,6 +138,8 @@ module rgb_controller_top (
                     cur_flow_speed <= cp_flow_speed;
                 if (breath_period_valid)
                     cur_breath_period <= cp_breath_period;
+                if (music_level_valid)
+                    cur_music_level <= cp_music_level;
             end
         end
     end
@@ -207,6 +212,17 @@ module rgb_controller_top (
                     src_g <= grad_g;
                     src_b <= grad_b;
                 end
+                MODE_MUSIC: begin
+                    if (cur_r == 8'd0 && cur_g == 8'd0 && cur_b == 8'd0) begin
+                        src_r <= 8'hEC;
+                        src_g <= 8'h30;
+                        src_b <= 8'h8F;
+                    end else begin
+                        src_r <= cur_r;
+                        src_g <= cur_g;
+                        src_b <= cur_b;
+                    end
+                end
                 default: begin
                     src_r <= cur_r;
                     src_g <= cur_g;
@@ -230,7 +246,29 @@ module rgb_controller_top (
     // =====================================================
     // Per-LED GRB assembly
     // =====================================================
-    wire [7:0] led_en = (cur_mode == MODE_FLOW) ? flow_mask : 8'hFF;
+    wire [3:0] music_count =
+        (cur_music_level < 8'd8) ? 4'd0 : ({1'b0, cur_music_level[7:5]} + 4'd1);
+
+    function [7:0] music_level_mask;
+        input [3:0] count;
+        begin
+            case (count)
+                4'd0: music_level_mask = 8'b0000_0000;
+                4'd1: music_level_mask = 8'b0000_1000;
+                4'd2: music_level_mask = 8'b0000_1100;
+                4'd3: music_level_mask = 8'b0000_1110;
+                4'd4: music_level_mask = 8'b0000_1111;
+                4'd5: music_level_mask = 8'b0001_1111;
+                4'd6: music_level_mask = 8'b0011_1111;
+                4'd7: music_level_mask = 8'b0111_1111;
+                default: music_level_mask = 8'b1111_1111;
+            endcase
+        end
+    endfunction
+
+    wire [7:0] music_mask = music_level_mask(music_count);
+    wire [7:0] led_en = (cur_mode == MODE_FLOW) ? flow_mask :
+                         (cur_mode == MODE_MUSIC) ? music_mask : 8'hFF;
 
     wire [23:0] led0_grb = led_en[0] ? {final_g, final_r, final_b} : 24'd0;
     wire [23:0] led1_grb = led_en[1] ? {final_g, final_r, final_b} : 24'd0;

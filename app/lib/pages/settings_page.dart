@@ -335,9 +335,9 @@ class _AdvancedDiagnosticsCard extends StatelessWidget {
                 ),
               ),
               AnimatedSwitcher(
-                duration: AppMotion.normal,
-                switchInCurve: AppMotion.emphasized,
-                switchOutCurve: AppMotion.standard,
+                duration: AppMotion.duration(context, AppMotion.normal),
+                switchInCurve: AppMotion.curve(context, AppMotion.emphasized),
+                switchOutCurve: AppMotion.curve(context, AppMotion.standard),
                 child: expanded
                     ? _AdvancedDiagnosticsBody(
                         key: const ValueKey('advanced-diagnostics-open'),

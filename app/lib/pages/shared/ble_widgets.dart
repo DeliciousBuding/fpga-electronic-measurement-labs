@@ -15,9 +15,9 @@ class BleBanner extends ConsumerWidget {
     return ValueListenableBuilder(
       valueListenable: ble.isConnected,
       builder: (context, connected, _) => AnimatedSwitcher(
-        duration: AppMotion.normal,
-        switchInCurve: AppMotion.standard,
-        switchOutCurve: AppMotion.standard,
+        duration: AppMotion.duration(context, AppMotion.normal),
+        switchInCurve: AppMotion.curve(context, AppMotion.standard),
+        switchOutCurve: AppMotion.curve(context, AppMotion.standard),
         child: connected
             ? const SizedBox.shrink(key: ValueKey('ble-connected'))
             : Material(

@@ -60,7 +60,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get descGradient => 'HSV 色相平滑过渡';
 
   @override
-  String get descMusic => 'FFT 联动 (未实现)';
+  String get descMusic => '麦克风电平实时跟随';
 
   @override
   String get wip => 'WIP';

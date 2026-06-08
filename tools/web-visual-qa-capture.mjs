@@ -14,6 +14,7 @@ const out = args.get("--out");
 const logOut = args.get("--log-out");
 const metricsOut = args.get("--metrics-out");
 const profile = args.get("--profile");
+const colorScheme = args.get("--color-scheme") ?? "";
 const width = Number(args.get("--width"));
 const height = Number(args.get("--height"));
 const waitMs = Number(args.get("--wait-ms") ?? "2500");
@@ -168,6 +169,11 @@ async function captureWithCdp(wsUrl) {
   await send("Runtime.enable");
   await send("Log.enable");
   await send("Performance.enable");
+  if (colorScheme) {
+    await send("Emulation.setEmulatedMedia", {
+      features: [{ name: "prefers-color-scheme", value: colorScheme }],
+    });
+  }
   await send("Emulation.setDeviceMetricsOverride", {
     width,
     height,

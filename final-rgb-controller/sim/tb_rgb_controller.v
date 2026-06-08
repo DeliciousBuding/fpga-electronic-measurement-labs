@@ -187,10 +187,24 @@ module tb_rgb_controller;
         test_num = 16; $display("[TEST%0d] SetMode Gradient", test_num);
         send_cmd(8'h20, 8'h03, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        test_num = 17; $display("[TEST%0d] SetMode Static", test_num);
+        test_num = 17; $display("[TEST%0d] SetMode Music + SetMusicLevel", test_num);
+        send_cmd(8'h20, 8'h04, 8'd0, 8'd0, 4'd1, 8'hAA);
+        send_cmd(8'h23, 8'hE0, 8'd0, 8'd0, 4'd1, 8'hAA);
+        #2000;
+        if (dut.cur_music_level == 8'hE0 && dut.music_mask == 8'b1111_1111) begin
+            $display("[PASS] Music level follows command: level=%0d mask=%08b",
+                dut.cur_music_level, dut.music_mask);
+        end else begin
+            $display("[ERROR] Music command mismatch: level=%0d mask=%08b",
+                dut.cur_music_level, dut.music_mask);
+            errors = errors + 1;
+        end
+        check_status(3'd4, 8'd0, 8'd255, 8'd0, 8'd200);
+
+        test_num = 18; $display("[TEST%0d] SetMode Static", test_num);
         send_cmd(8'h20, 8'h00, 8'd0, 8'd0, 4'd1, 8'hAA);
 
-        test_num = 18; $display("[TEST%0d] Save+Load all 8 slots", test_num);
+        test_num = 19; $display("[TEST%0d] Save+Load all 8 slots", test_num);
         send_cmd(8'h30, 8'd0, 8'd0, 8'd0, 4'd1, 8'hAA);
         send_cmd(8'h31, 8'd0, 8'd0, 8'd0, 4'd1, 8'hAA);
         send_cmd(8'h30, 8'd1, 8'd0, 8'd0, 4'd1, 8'hAA);

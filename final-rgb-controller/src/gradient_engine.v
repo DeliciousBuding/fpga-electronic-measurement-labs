@@ -1,4 +1,7 @@
-module gradient_engine (
+module gradient_engine #(
+    parameter [24:0] MIN_STEP_CYCLES   = 25'd1_000_000,
+    parameter [24:0] SPEED_RANGE_CYCLES = 25'd20_000_000
+) (
     input  wire       clk,
     input  wire       rst_n,
     input  wire [7:0] speed,
@@ -143,9 +146,12 @@ module gradient_engine (
     endfunction
 
 
-    reg [7:0]  phase_cnt;
+    reg [24:0] phase_cnt;
     reg [6:0]  lut_idx;
     reg [23:0] rgb_val;
+    wire [24:0] speed_scaled = {17'd0, speed} * SPEED_RANGE_CYCLES[24:8];
+    wire [24:0] step_cycles = MIN_STEP_CYCLES + (SPEED_RANGE_CYCLES - speed_scaled);
+
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             phase_cnt <= 8'd0;
@@ -154,11 +160,11 @@ module gradient_engine (
             phase_cnt <= 8'd0;
             lut_idx   <= 7'd0;
         end else begin
-            if (phase_cnt >= speed) begin
-                phase_cnt <= 8'd0;
+            if (phase_cnt >= step_cycles) begin
+                phase_cnt <= 25'd0;
                 lut_idx   <= lut_idx + 7'd1;
             end else begin
-                phase_cnt <= phase_cnt + 8'd1;
+                phase_cnt <= phase_cnt + 25'd1;
             end
         end
     end

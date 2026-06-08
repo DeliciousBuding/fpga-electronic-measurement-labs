@@ -37,11 +37,22 @@ class _ColorTabState extends ConsumerState<ColorTab>
 
   void _syncAnimation([int? mode]) {
     final m = mode ?? ref.read(deviceProvider).mode;
+    if (AppMotion.reduced(context)) {
+      if (_ctrl.isAnimating) _ctrl.stop();
+      _ctrl.value = 0;
+      return;
+    }
     if (m >= 1 && m <= 3 && !_ctrl.isAnimating) {
       _ctrl.repeat();
     } else if ((m == 0 || m == 4) && _ctrl.isAnimating) {
       _ctrl.stop();
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (mounted) _syncAnimation();
   }
 
   @override
@@ -395,12 +406,17 @@ class LedStripDotLayout {
     required this.center,
     required this.radius,
     required this.glowOutset,
+    required this.ledIndex,
   });
 
   final Offset center;
   final double radius;
   final double glowOutset;
+  final int ledIndex;
 }
+
+@visibleForTesting
+const List<int> ledPhysicalLayoutOrder = [3, 2, 1, 0, 4, 5, 6, 7];
 
 @visibleForTesting
 List<LedStripDotLayout> computeLedStripDotLayout(Size size) {
@@ -424,7 +440,7 @@ List<LedStripDotLayout> computeLedStripDotLayout(Size size) {
   );
   final glowOutset = math.min(_LedStripPainter._glowOutset, radius * 0.35);
 
-  return List<LedStripDotLayout>.generate(8, (i) {
+  return List<LedStripDotLayout>.generate(ledPhysicalLayoutOrder.length, (i) {
     final row = i ~/ columns;
     final col = i % columns;
     return LedStripDotLayout(
@@ -434,6 +450,7 @@ List<LedStripDotLayout> computeLedStripDotLayout(Size size) {
       ),
       radius: radius,
       glowOutset: glowOutset,
+      ledIndex: ledPhysicalLayoutOrder[i],
     );
   }, growable: false);
 }
@@ -459,8 +476,8 @@ class _ModeBadges extends StatelessWidget {
         for (var i = 0; i < items.length; i++) ...[
           if (i > 0) const SizedBox(width: 4),
           AnimatedContainer(
-            duration: AppMotion.fast,
-            curve: AppMotion.standard,
+            duration: AppMotion.duration(context, AppMotion.fast),
+            curve: AppMotion.curve(context, AppMotion.standard),
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(6),
@@ -621,8 +638,8 @@ class _PresetColors extends StatelessWidget {
                 return GestureDetector(
                   onTap: () => onPick(pr, pg, pb),
                   child: AnimatedContainer(
-                    duration: AppMotion.fast,
-                    curve: AppMotion.standard,
+                    duration: AppMotion.duration(context, AppMotion.fast),
+                    curve: AppMotion.curve(context, AppMotion.standard),
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(

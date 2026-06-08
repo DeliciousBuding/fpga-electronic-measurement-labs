@@ -93,4 +93,21 @@ void main() {
       }
     }
   });
+
+  test('LED preview follows physical 4321 over 5678 layout', () {
+    final dots = computeLedStripDotLayout(const Size(360, 132));
+
+    expect(ledPhysicalLayoutOrder, [3, 2, 1, 0, 4, 5, 6, 7]);
+    expect(dots.map((dot) => dot.ledIndex), [3, 2, 1, 0, 4, 5, 6, 7]);
+
+    for (var i = 1; i < 4; i++) {
+      expect(dots[i].center.dx, greaterThan(dots[i - 1].center.dx));
+      expect(dots[i].center.dy, dots[0].center.dy);
+    }
+    for (var i = 5; i < 8; i++) {
+      expect(dots[i].center.dx, greaterThan(dots[i - 1].center.dx));
+      expect(dots[i].center.dy, dots[4].center.dy);
+    }
+    expect(dots[4].center.dy, greaterThan(dots[0].center.dy));
+  });
 }

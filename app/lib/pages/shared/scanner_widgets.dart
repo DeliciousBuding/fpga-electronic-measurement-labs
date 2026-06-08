@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import '../../l10n/app_localizations.dart';
+import '../../theme/app_design.dart';
 import '../../utils/ble_scan_matcher.dart';
 
 String scanResultName(ScanResult result) => scanResultDisplayName(result);
@@ -160,7 +161,9 @@ class ScanEmptyState extends StatelessWidget {
     final t = AppLocalizations.of(context)!;
     return Center(
       child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
+        duration: AppMotion.duration(context, AppMotion.normal),
+        switchInCurve: AppMotion.curve(context, AppMotion.emphasized),
+        switchOutCurve: AppMotion.curve(context, AppMotion.standard),
         child: scanning
             ? Column(
                 key: const ValueKey('scanning'),

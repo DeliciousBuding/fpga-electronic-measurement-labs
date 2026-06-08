@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/ble_provider.dart';
 import '../providers/device_provider.dart';
+import '../services/audio_level_service.dart';
 import '../theme/app_design.dart';
 import 'shared/ble_widgets.dart';
 import 'shared/sliders.dart';
@@ -18,6 +20,11 @@ class EffectTab extends ConsumerStatefulWidget {
 class _EffectTabState extends ConsumerState<EffectTab>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
+  ProviderSubscription<int>? _modeSub;
+  StreamSubscription<int>? _musicSub;
+  int _musicLevel = 0;
+  bool _musicPermissionPending = false;
+  String? _musicError;
 
   @override
   void initState() {
@@ -28,14 +35,25 @@ class _EffectTabState extends ConsumerState<EffectTab>
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _syncAnimation();
-      ref.listenManual(deviceProvider.select((s) => s.mode), (prev, next) {
+      _modeSub = ref.listenManual(deviceProvider.select((s) => s.mode), (
+        prev,
+        next,
+      ) {
         _syncAnimation(next);
+        if (next != 4) {
+          _stopMusicFollow(sendZero: true, clearUi: true);
+        }
       });
     });
   }
 
   void _syncAnimation([int? mode]) {
     final m = mode ?? ref.read(deviceProvider).mode;
+    if (AppMotion.reduced(context)) {
+      if (_ctrl.isAnimating) _ctrl.stop();
+      _ctrl.value = 0;
+      return;
+    }
     if (m >= 1 && m <= 3 && !_ctrl.isAnimating) {
       _ctrl.repeat();
     } else if ((m == 0 || m == 4) && _ctrl.isAnimating) {
@@ -45,9 +63,95 @@ class _EffectTabState extends ConsumerState<EffectTab>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (mounted) _syncAnimation();
+  }
+
+  @override
   void dispose() {
+    _stopMusicFollow(sendZero: false);
+    _modeSub?.close();
     _ctrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _selectEffect(_EffectDef effect) async {
+    if (effect.mode == ref.read(deviceProvider).mode) return;
+    HapticFeedback.selectionClick();
+    if (effect.mode == 4) {
+      await _activateMusicMode();
+      return;
+    }
+    _stopMusicFollow(sendZero: true, clearUi: true);
+    ref.read(deviceProvider.notifier).setMode(effect.mode);
+    await ref.read(bleServiceProvider).setMode(effect.mode);
+  }
+
+  Future<void> _activateMusicMode() async {
+    setState(() {
+      _musicPermissionPending = true;
+      _musicError = null;
+    });
+    final audio = ref.read(audioLevelServiceProvider);
+    final allowed = await audio.ensurePermission();
+    if (!mounted) return;
+    if (!allowed) {
+      setState(() {
+        _musicPermissionPending = false;
+        _musicError = '麦克风权限未开启';
+      });
+      return;
+    }
+
+    ref.read(deviceProvider.notifier).setMode(4);
+    await ref.read(bleServiceProvider).setMode(4);
+    _startMusicFollow();
+    if (mounted) {
+      setState(() => _musicPermissionPending = false);
+    }
+  }
+
+  void _startMusicFollow() {
+    _musicSub?.cancel();
+    _musicSub = ref
+        .read(audioLevelServiceProvider)
+        .watchLevels()
+        .listen(
+          (level) {
+            final next = level.clamp(0, 255);
+            if (mounted) {
+              setState(() {
+                _musicLevel = next;
+                _musicError = null;
+              });
+            }
+            ref.read(bleServiceProvider).setMusicLevelThrottled(next);
+          },
+          onError: (Object error) {
+            if (!mounted) return;
+            setState(() {
+              _musicError = '音频采样不可用';
+              _musicPermissionPending = false;
+            });
+          },
+        );
+  }
+
+  void _stopMusicFollow({required bool sendZero, bool clearUi = false}) {
+    _musicSub?.cancel();
+    _musicSub = null;
+    _musicLevel = 0;
+    if (clearUi && mounted) {
+      setState(() {
+        _musicLevel = 0;
+        _musicPermissionPending = false;
+        _musicError = null;
+      });
+    }
+    if (sendZero) {
+      ref.read(bleServiceProvider).setMusicLevelThrottled(0);
+    }
   }
 
   @override
@@ -102,7 +206,6 @@ class _EffectTabState extends ConsumerState<EffectTab>
         Icons.music_note_rounded,
         t.descMusic,
         const Color(0xFFEC4899),
-        wip: true,
       ),
     ];
     final activeEffect = effects.firstWhere(
@@ -127,19 +230,23 @@ class _EffectTabState extends ConsumerState<EffectTab>
           _EffectModeSelector(
             effects: effects,
             activeMode: activeMode,
-            onSelect: (effect) {
-              if (effect.wip || effect.mode == activeMode) return;
-              HapticFeedback.selectionClick();
-              ref.read(deviceProvider.notifier).setMode(effect.mode);
-              ble.setMode(effect.mode);
-            },
+            onSelect: (effect) => _selectEffect(effect),
           ),
           const SizedBox(height: AppSpacing.md),
           _EffectPreviewPanel(
             def: activeEffect,
             ctrl: activeMode >= 1 && activeMode <= 3 ? _ctrl : null,
+            musicLevel: _musicLevel,
           ),
           const SizedBox(height: AppSpacing.md),
+          if (activeMode == 4 || _musicPermissionPending || _musicError != null)
+            _MusicFollowCard(
+              level: _musicLevel,
+              pending: _musicPermissionPending,
+              error: _musicError,
+            ),
+          if (activeMode == 4 || _musicPermissionPending || _musicError != null)
+            const SizedBox(height: AppSpacing.md),
           if (activeMode == 2 || activeMode == 3)
             SliderCard(
               label: activeMode == 2 ? t.flowSpeed : t.gradientSpeed,
@@ -182,15 +289,7 @@ class _EffectDef {
   final String name, desc;
   final IconData icon;
   final Color color;
-  final bool wip;
-  const _EffectDef(
-    this.mode,
-    this.name,
-    this.icon,
-    this.desc,
-    this.color, {
-    this.wip = false,
-  });
+  const _EffectDef(this.mode, this.name, this.icon, this.desc, this.color);
 }
 
 class _EffectModeSelector extends StatelessWidget {
@@ -207,7 +306,6 @@ class _EffectModeSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final t = AppLocalizations.of(context)!;
     return Card(
       color: cs.surfaceContainerLow,
       shape: RoundedRectangleBorder(
@@ -224,8 +322,7 @@ class _EffectModeSelector extends StatelessWidget {
                 (effect) => _EffectModeChip(
                   def: effect,
                   selected: activeMode == effect.mode,
-                  wipLabel: t.wip,
-                  onTap: effect.wip ? null : () => onSelect(effect),
+                  onTap: () => onSelect(effect),
                 ),
               )
               .toList(growable: false),
@@ -239,34 +336,30 @@ class _EffectModeChip extends StatelessWidget {
   const _EffectModeChip({
     required this.def,
     required this.selected,
-    required this.wipLabel,
     required this.onTap,
   });
 
   final _EffectDef def;
   final bool selected;
-  final String wipLabel;
-  final VoidCallback? onTap;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final labelStyle = Theme.of(context).textTheme.labelLarge?.copyWith(
       fontWeight: FontWeight.w700,
-      color: def.wip
-          ? cs.onSurfaceVariant.withAlpha(95)
-          : (selected ? cs.onPrimaryContainer : cs.onSurfaceVariant),
+      color: selected ? cs.onPrimaryContainer : cs.onSurfaceVariant,
     );
     final chip = AnimatedContainer(
-      duration: AppMotion.fast,
-      curve: AppMotion.standard,
+      duration: AppMotion.duration(context, AppMotion.fast),
+      curve: AppMotion.curve(context, AppMotion.standard),
       height: 44,
       constraints: const BoxConstraints(minWidth: 92),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadii.pill),
         color: selected
             ? def.color.withAlpha(34)
-            : cs.surfaceContainerHighest.withAlpha(def.wip ? 65 : 120),
+            : cs.surfaceContainerHighest.withAlpha(120),
         border: Border.all(
           color: selected ? def.color.withAlpha(145) : Colors.transparent,
         ),
@@ -284,22 +377,10 @@ class _EffectModeChip extends StatelessWidget {
                 Icon(
                   def.icon,
                   size: 18,
-                  color: def.wip
-                      ? cs.onSurfaceVariant.withAlpha(85)
-                      : (selected ? def.color : cs.onSurfaceVariant),
+                  color: selected ? def.color : cs.onSurfaceVariant,
                 ),
                 const SizedBox(width: AppSpacing.xs),
                 Text(def.name, style: labelStyle),
-                if (def.wip) ...[
-                  const SizedBox(width: AppSpacing.xs),
-                  Text(
-                    wipLabel,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: cs.onSurfaceVariant.withAlpha(90),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -308,12 +389,12 @@ class _EffectModeChip extends StatelessWidget {
     );
 
     return Tooltip(
-      message: def.wip ? def.desc : def.name,
+      message: def.name,
       child: Semantics(
         button: true,
-        enabled: !def.wip,
+        enabled: true,
         selected: selected,
-        label: def.wip ? '${def.name}, $wipLabel' : def.name,
+        label: def.name,
         child: chip,
       ),
     );
@@ -321,18 +402,23 @@ class _EffectModeChip extends StatelessWidget {
 }
 
 class _EffectPreviewPanel extends StatelessWidget {
-  const _EffectPreviewPanel({required this.def, required this.ctrl});
+  const _EffectPreviewPanel({
+    required this.def,
+    required this.ctrl,
+    required this.musicLevel,
+  });
 
   final _EffectDef def;
   final AnimationController? ctrl;
+  final int musicLevel;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return AnimatedSwitcher(
-      duration: AppMotion.normal,
-      switchInCurve: AppMotion.emphasized,
-      switchOutCurve: AppMotion.standard,
+      duration: AppMotion.duration(context, AppMotion.normal),
+      switchInCurve: AppMotion.curve(context, AppMotion.emphasized),
+      switchOutCurve: AppMotion.curve(context, AppMotion.standard),
       transitionBuilder: (child, animation) {
         final offset = Tween<Offset>(
           begin: const Offset(0, 0.04),
@@ -357,7 +443,13 @@ class _EffectPreviewPanel extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  ctrl != null
+                  def.mode == 4
+                      ? _MusicPreview(
+                          level: musicLevel,
+                          color: def.color,
+                          size: 76,
+                        )
+                      : ctrl != null
                       ? _AnimatedPreview(
                           ctrl: ctrl!,
                           mode: def.mode,
@@ -395,6 +487,148 @@ class _EffectPreviewPanel extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _MusicFollowCard extends StatelessWidget {
+  const _MusicFollowCard({
+    required this.level,
+    required this.pending,
+    required this.error,
+  });
+
+  final int level;
+  final bool pending;
+  final String? error;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final color = error == null ? const Color(0xFFEC4899) : cs.error;
+    return Card(
+      color: cs.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        side: BorderSide(color: color.withAlpha(75)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.graphic_eq_rounded, color: color),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    '音乐跟随',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                Text(
+                  pending ? '授权中' : level.toString(),
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: cs.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AppRadii.pill),
+              child: LinearProgressIndicator(
+                minHeight: 8,
+                value: pending ? null : level / 255,
+                color: color,
+                backgroundColor: cs.surfaceContainerHighest,
+              ),
+            ),
+            if (error != null) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                error!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: cs.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MusicPreview extends StatelessWidget {
+  const _MusicPreview({
+    required this.level,
+    required this.color,
+    required this.size,
+  });
+
+  final int level;
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: CustomPaint(
+          painter: _MusicPreviewPainter(level: level, color: color),
+        ),
+      ),
+    );
+  }
+}
+
+class _MusicPreviewPainter extends CustomPainter {
+  const _MusicPreviewPainter({required this.level, required this.color});
+
+  final int level;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bg = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      const Radius.circular(10),
+    );
+    canvas.drawRRect(bg, Paint()..color = color.withAlpha(30));
+
+    const bars = 8;
+    final gap = size.width * 0.035;
+    final barWidth = (size.width - gap * (bars + 1)) / bars;
+    final normalized = (level / 255).clamp(0.0, 1.0);
+
+    for (var i = 0; i < bars; i++) {
+      final threshold = (i + 1) / bars;
+      final active = normalized >= threshold;
+      final heightFactor = active ? threshold : 0.18;
+      final left = gap + i * (barWidth + gap);
+      final barHeight = size.height * (0.18 + heightFactor * 0.68);
+      final top = size.height - barHeight - size.height * 0.12;
+      final rect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(left, top, barWidth, barHeight),
+        Radius.circular(barWidth / 2),
+      );
+      canvas.drawRRect(
+        rect,
+        Paint()..color = active ? color.withAlpha(205) : color.withAlpha(55),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _MusicPreviewPainter oldDelegate) {
+    return oldDelegate.level != level || oldDelegate.color != color;
   }
 }
 

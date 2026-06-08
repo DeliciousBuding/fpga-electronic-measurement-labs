@@ -50,8 +50,13 @@ $doLines = @(
   "vlog src/scene_store.v",
   "vlog src/ws2812_driver.v",
   "vlog src/rgb_controller_top.v",
+  "vlog sim/tb_flow_engine.v",
   "vlog sim/tb_rgb_controller.v",
   "vlog sim/tb_ws2812_driver.v",
+  "vsim -c -voptargs=""+acc"" work.tb_flow_engine",
+  "onfinish stop",
+  "run -all",
+  "quit -sim",
   "vsim -c -voptargs=""+acc"" work.tb_rgb_controller",
   "onfinish stop",
   "run -all",
@@ -79,15 +84,21 @@ if (!(Test-Path -LiteralPath $transcript)) {
 }
 
 $text = Get-Content -LiteralPath $transcript -Raw
-if ($text -notmatch "ALL\s+18\s+TESTS\s+PASSED") {
-  throw "FPGA simulation did not report ALL 18 TESTS PASSED. Transcript: $transcript"
+if ($text -notmatch "ALL\s+19\s+TESTS\s+PASSED") {
+  throw "FPGA simulation did not report ALL 19 TESTS PASSED. Transcript: $transcript"
 }
 if ($text -notmatch "WS2812\s+TIMING\s+TEST\s+PASSED") {
   throw "FPGA simulation did not report WS2812 TIMING TEST PASSED. Transcript: $transcript"
+}
+if ($text -notmatch "FLOW\s+PHYSICAL\s+ORDER\s+TEST\s+PASSED") {
+  throw "FPGA simulation did not report FLOW PHYSICAL ORDER TEST PASSED. Transcript: $transcript"
+}
+if ($text -notmatch "FLOW\s+SPEED\s+STABILITY\s+TEST\s+PASSED") {
+  throw "FPGA simulation did not report FLOW SPEED STABILITY TEST PASSED. Transcript: $transcript"
 }
 if ($text -match "\[ERROR\]") {
   throw "FPGA simulation transcript contains [ERROR]. Transcript: $transcript"
 }
 
-Write-Host "FPGA simulation passed: ALL 18 TESTS PASSED + WS2812 TIMING TEST PASSED"
+Write-Host "FPGA simulation passed: FLOW PHYSICAL ORDER TEST PASSED + FLOW SPEED STABILITY TEST PASSED + ALL 19 TESTS PASSED + WS2812 TIMING TEST PASSED"
 Write-Host "Transcript: $transcript"

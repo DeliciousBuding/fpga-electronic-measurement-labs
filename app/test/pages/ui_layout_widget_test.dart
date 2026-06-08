@@ -8,6 +8,7 @@ import 'package:rgb_ble_controller/pages/scene_tab.dart';
 import 'package:rgb_ble_controller/providers/device_provider.dart';
 import 'package:rgb_ble_controller/providers/preferences_provider.dart';
 import 'package:rgb_ble_controller/providers/theme_provider.dart';
+import 'package:rgb_ble_controller/services/audio_level_service.dart';
 import 'package:rgb_ble_controller/theme/app_design.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,11 +18,16 @@ Future<ProviderContainer> _pumpPage(
   Size size = const Size(390, 844),
   double textScale = 1.0,
   Map<String, Object> prefs = const {},
+  AudioLevelService? audioLevelService,
 }) async {
   SharedPreferences.setMockInitialValues(prefs);
   final sharedPrefs = await SharedPreferences.getInstance();
   final container = ProviderContainer(
-    overrides: [sharedPreferencesProvider.overrideWithValue(sharedPrefs)],
+    overrides: [
+      sharedPreferencesProvider.overrideWithValue(sharedPrefs),
+      if (audioLevelService != null)
+        audioLevelServiceProvider.overrideWithValue(audioLevelService),
+    ],
   );
   addTearDown(container.dispose);
 
@@ -113,7 +119,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('effect tab keeps music mode disabled without layout overflow', (
+  testWidgets('effect tab enables music mode without layout overflow', (
     tester,
   ) async {
     final container = await _pumpPage(
@@ -121,15 +127,16 @@ void main() {
       const EffectTab(),
       size: const Size(320, 780),
       textScale: 1.25,
+      audioLevelService: _FakeAudioLevelService(),
     );
 
     expect(find.text('音乐'), findsOneWidget);
-    expect(find.text('WIP'), findsOneWidget);
 
     await tester.tap(find.text('音乐'));
     await tester.pumpAndSettle();
 
-    expect(container.read(deviceProvider).mode, 0);
+    expect(container.read(deviceProvider).mode, 4);
+    expect(find.text('音乐跟随'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -156,4 +163,12 @@ void main() {
     expect(find.text('电光'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+}
+
+class _FakeAudioLevelService extends AudioLevelService {
+  @override
+  Future<bool> ensurePermission() async => true;
+
+  @override
+  Stream<int> watchLevels() => Stream<int>.value(128);
 }

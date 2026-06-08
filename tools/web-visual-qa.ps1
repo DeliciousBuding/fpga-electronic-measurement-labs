@@ -2,7 +2,9 @@ param(
   [int]$Port = 7357,
   [string]$Url = "",
   [string]$OutDir = "",
-  [int]$WaitMs = 18000
+  [int]$WaitMs = 18000,
+  [ValidateSet("", "light", "dark")]
+  [string]$ColorScheme = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -297,6 +299,9 @@ foreach ($viewport in $viewports) {
       "--scroll-y", "$scrollY",
       "--wait-ms", "$WaitMs"
     )
+    if ($ColorScheme) {
+      $args += @("--color-scheme", $ColorScheme)
+    }
     if ($tab -ne 0) {
       $args += @("--tap-x", "$tapX", "--tap-y", "$tapY")
     }

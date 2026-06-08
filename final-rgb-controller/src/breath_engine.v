@@ -1,4 +1,7 @@
-module breath_engine (
+module breath_engine #(
+    parameter [24:0] MIN_STEP_CYCLES    = 25'd750_000,
+    parameter [24:0] PERIOD_STEP_CYCLES = 25'd20_000
+) (
     input  wire       clk,
     input  wire       rst_n,
     input  wire [7:0] r_in, g_in, b_in,
@@ -6,8 +9,10 @@ module breath_engine (
     input  wire       enable,
     output reg [7:0]  r_out, g_out, b_out
 );
-    reg [7:0] phase_cnt;
+    reg [24:0] phase_cnt;
     reg [5:0] lut_idx;
+    wire [24:0] period_scaled = {17'd0, period} * PERIOD_STEP_CYCLES;
+    wire [24:0] step_cycles = MIN_STEP_CYCLES + period_scaled;
 
     function [7:0] sin_lut_value;
         input [5:0] idx;
@@ -84,17 +89,17 @@ module breath_engine (
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            phase_cnt <= 8'd0;
+            phase_cnt <= 25'd0;
             lut_idx   <= 6'd0;
         end else if (!enable) begin
-            phase_cnt <= 8'd0;
+            phase_cnt <= 25'd0;
             lut_idx   <= 6'd0;
         end else begin
-            if (phase_cnt >= period) begin
-                phase_cnt <= 8'd0;
+            if (phase_cnt >= step_cycles) begin
+                phase_cnt <= 25'd0;
                 lut_idx   <= lut_idx + 6'd1;
             end else begin
-                phase_cnt <= phase_cnt + 8'd1;
+                phase_cnt <= phase_cnt + 25'd1;
             end
         end
     end
