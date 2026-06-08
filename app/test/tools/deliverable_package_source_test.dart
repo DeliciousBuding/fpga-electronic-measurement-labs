@@ -14,11 +14,14 @@ void main() {
     expect(verifyApp, isNot(contains('\$DeliverablePackage = \$true')));
 
     expect(packageScript, contains('Expand-Archive'));
+    expect(packageScript, contains('app\\pubspec.yaml'));
+    expect(packageScript, contains('expectedAppVersion'));
     expect(packageScript, contains('SHA256SUMS.txt'));
     expect(packageScript, contains('Release 附件 SHA256'));
     expect(packageScript, contains('README.md contains unexpected control bytes'));
     expect(packageScript, contains('*.sof'));
     expect(packageScript, contains('*.apk'));
     expect(packageScript, contains('noDeviceEvidence'));
+    expect(packageScript, isNot(contains('0.1.0+2026062409')));
   });
 }

@@ -61,6 +61,12 @@ function Get-SingleCandidate {
 
 $repoRoot = Resolve-Path "$PSScriptRoot\.."
 $deliverablesRoot = Join-Path $repoRoot "deliverables"
+$pubspecPath = Join-Path $repoRoot "app\pubspec.yaml"
+$pubspecVersionMatch = Select-String -LiteralPath $pubspecPath -Pattern '^version:\s*(?<version>\S+)' | Select-Object -First 1
+if (!$pubspecVersionMatch) {
+  throw "Could not read app version from $pubspecPath"
+}
+$expectedAppVersion = $pubspecVersionMatch.Matches[0].Groups["version"].Value
 
 if (!$Package) {
   $latest = Get-ChildItem -LiteralPath $deliverablesRoot -File -Filter "*.zip" -ErrorAction SilentlyContinue |
@@ -117,7 +123,7 @@ try {
 
   $readme = Get-Content -LiteralPath $readmeFile.FullName -Raw -Encoding UTF8
   Assert-Text -Text $readme -Pattern "GitHub Release" -Name "README"
-  Assert-Text -Text $readme -Pattern "0.1.0+2026062409" -Name "README"
+  Assert-Text -Text $readme -Pattern $expectedAppVersion -Name "README"
   Assert-Text -Text $readme -Pattern "No ADB" -Name "README"
   Assert-Text -Text $readme -Pattern "Field evidence is still 0/6 complete" -Name "README"
 
