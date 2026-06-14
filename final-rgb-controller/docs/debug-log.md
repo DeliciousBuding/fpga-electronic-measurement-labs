@@ -100,8 +100,9 @@ src × brightness → final → ws2812_driver → led_din
 
 | 项 | 负责 | 状态 |
 |----|------|------|
-| Flutter APP BLE 联调 | app agent | wip |
-| SignalTap 波形捕获 | 上板时 | todo |
-| 90 分演示报告 | 全组 | todo |
-| FFT 音乐联动 (M5) | 选做 | todo |
+| Flutter APP BLE 联调 | app agent | ✅ done |
+| 音乐联动 (手机端 RMS→BLE→FPGA) | app + FPGA | ✅ done (2026-06-14) |
+| SignalTap 波形捕获 | 上板时 | todo (明天) |
+| 现场证据采集 | 上板时 | todo (明天) |
+| FFT 音乐联动 — 选做，已由手机端 RMS 包络检测替代 | — | n/a |
 | 多灯同步控制 (M6) | 选做 | todo |
