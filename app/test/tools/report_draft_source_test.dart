@@ -19,7 +19,7 @@ void main() {
     expect(reportScript, contains('Assert-PortraitImage'));
     expect(reportScript, contains('PDF page count must be 1-6 pages'));
     expect(reportScript, contains('Assert-TextNotMatches'));
-    expect(reportScript, contains('C301'));
+    expect(reportScript, contains('RGB彩灯'));
     expect(reportScript, contains('CH9143'));
     expect(reportScript, contains('WS2812'));
     expect(reportScript, contains('APK'));
