@@ -79,3 +79,20 @@ deliverables/*/files/
 install-prompt.png
 quartus-*.png
 deliverables/
+app/android/local.properties
+docs/screenshots/
+_archive/
+artifacts/
+*.ttf
+
+# Font files (large binaries)
+*.ttf
+*.otf
+
+# Web build artifacts
+app/web/
+
+# IP core cache
+**/ip/*.qarlog
+**/ip/*.qxp
+
