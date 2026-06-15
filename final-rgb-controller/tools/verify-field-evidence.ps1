@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    C301 RGB BLE Controller - Field Evidence Completeness Check
+    RGB BLE Controller - Field Evidence Completeness Check
 
 .DESCRIPTION
     Checks whether all 6 categories of field evidence are present.
@@ -52,7 +52,7 @@ if (-not $EvidenceDir -or -not (Test-Path $EvidenceDir)) {
 }
 
 Write-Host ""
-Write-Host "=== C301 Field Evidence Verifier ===" -ForegroundColor Cyan
+Write-Host "=== Field Evidence Verifier ===" -ForegroundColor Cyan
 Write-Host "Evidence dir: $EvidenceDir"
 Write-Host ""
 
