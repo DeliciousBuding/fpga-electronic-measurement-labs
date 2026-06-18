@@ -26,10 +26,10 @@ dev_dependencies:
 flutter:
   generate: false
   uses-material-design: true
-  assets:
-    - assets/fonts/
+  # assets:
+  #   - assets/fonts/
 
-  fonts:
-    - family: MiSans
-      fonts:
-        - asset: assets/fonts/MiSans-Regular.ttf
+  # fonts:
+  #   - family: MiSans
+  #     fonts:
+  #       - asset: assets/fonts/MiSans-Regular.ttf

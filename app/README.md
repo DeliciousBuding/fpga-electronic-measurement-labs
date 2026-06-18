@@ -38,7 +38,7 @@ app/
 
 ## 设计规范
 
-照搬 fluxdo 的 Material 3 框架：
+Material 3 框架：
 
 - `DynamicColorBuilder` + `ColorScheme.fromSeed` + `DynamicSchemeVariant.fidelity`
 - 字体: MiSans (google_fonts)

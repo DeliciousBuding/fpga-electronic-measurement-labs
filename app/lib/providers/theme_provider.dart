@@ -19,7 +19,7 @@ class ThemeState {
     required this.mode,
     required this.seedColor,
     this.useDynamicColor = true,
-    this.fontFamily = AppFontFamily.miSans,
+    this.fontFamily = AppFontFamily.system,
     this.schemeVariant = DynamicSchemeVariant.tonalSpot,
   });
 
