@@ -119,6 +119,6 @@ fig.text(0.5, 0.02, 'All data from Quartus output_files/: task3.fit.summary, tas
          fontsize=6.5, fontfamily='monospace', ha='center', color='gray')
 
 plt.tight_layout(rect=[0, 0.04, 1, 1])
-fig.savefig('/home/user/quartus/task3-softcore-logic-analysis/figures/task3_quartus_evidence.png',
+fig.savefig('figures/task3_quartus_evidence.png',
             dpi=180, bbox_inches='tight', facecolor='white', edgecolor='none')
 print("Quartus evidence image saved.")

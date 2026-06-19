@@ -131,6 +131,6 @@ fig.text(0.98, 0.005, 'Source: ModelSim  |  DUT: task3_dcfifo_ip (16-bit x 16 de
          fontsize=6, fontfamily='monospace', ha='right', color='gray')
 
 plt.tight_layout(rect=[0.08, 0.03, 1, 0.96])
-fig.savefig('/home/user/quartus/task3-softcore-logic-analysis/figures/task3_modelsim_waveform.png',
+fig.savefig('figures/task3_modelsim_waveform.png',
             dpi=180, bbox_inches='tight', facecolor='white', edgecolor='none')
 print("Waveform saved.")

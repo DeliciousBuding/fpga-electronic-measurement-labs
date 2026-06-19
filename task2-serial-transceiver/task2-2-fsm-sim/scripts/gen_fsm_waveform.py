@@ -125,6 +125,6 @@ fig.text(0.98, 0.005, 'Source: ModelSim  |  DUT: dual_layer_fsm  |  tc: 1 ps',
          fontsize=6, fontfamily='monospace', ha='right', color='gray')
 
 plt.tight_layout(rect=[0.08, 0.03, 1, 0.96])
-fig.savefig('/home/user/quartus/task2-serial-transceiver/task2-2-fsm-sim/task2_fsm_modelsim_waveform.png',
+fig.savefig('task2_fsm_modelsim_waveform.png',
             dpi=180, bbox_inches='tight', facecolor='white', edgecolor='none')
 print("Task2 waveform saved.")

@@ -58,7 +58,7 @@ fig.text(0.98, 0.02, 'Measured on Cy4 board (PIN_T2)  |  Vpp=4.48V  |  3.3-V LVT
          fontsize=6, fontfamily='monospace', ha='right', color='gray')
 
 plt.tight_layout()
-fig.savefig('/home/user/quartus/task1-serial-output/task1-1-ws2812/figures/task1_ws2812_timing.png',
+fig.savefig('task1-1-ws2812/figures/task1_ws2812_timing.png',
             dpi=180, bbox_inches='tight', facecolor='white', edgecolor='none')
 print("WS2812 timing saved.")
 plt.close()
@@ -105,6 +105,6 @@ fig.text(0.98, 0.02, 'Measured: single bit ≈8.7μs, full frame ≈87μs  |  Er
          fontsize=6, fontfamily='monospace', ha='right', color='gray')
 
 plt.tight_layout()
-fig.savefig('/home/user/quartus/task1-serial-output/task1-4-uart-tx/figures/task1_uart_tx_timing.png',
+fig.savefig('task1-4-uart-tx/figures/task1_uart_tx_timing.png',
             dpi=180, bbox_inches='tight', facecolor='white', edgecolor='none')
 print("UART TX timing saved.")
